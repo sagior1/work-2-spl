@@ -1,5 +1,7 @@
 package bguspl.set.ex;
 
+import java.util.Queue;
+
 import bguspl.set.Env;
 
 /**
@@ -50,6 +52,8 @@ public class Player implements Runnable {
      */
     private int score;
 
+    //manages the actions the player wants to make 
+    Queue<Integer> actionsQueue;
     /**
      * The class constructor.
      *
@@ -76,6 +80,7 @@ public class Player implements Runnable {
         if (!human) createArtificialIntelligence();
 
         while (!terminate) {
+
             // TODO implement main player loop
         }
         if (!human) try { aiThread.join(); } catch (InterruptedException ignored) {}
@@ -91,6 +96,19 @@ public class Player implements Runnable {
         aiThread = new Thread(() -> {
             env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
             while (!terminate) {
+                if (!actionsQueue.isEmpty()){
+                    //TODO - we need to ensure that the queue cant get more then 3 objects
+                    int slot = actionsQueue.peek();
+                    //If the token was already pressed, remove it from the table, and if not add it to the table.
+                    if(table.tokenExists(id, slot)){
+                        table.removeToken(id, slot);
+                    }
+                    else{
+                        table.placeToken(id, slot);
+                        
+                    }
+                    actionsQueue.remove();
+                }
                 // TODO implement player key press simulator
                 try {
                     synchronized (this) { wait(); }
@@ -114,6 +132,9 @@ public class Player implements Runnable {
      * @param slot - the slot corresponding to the key pressed.
      */
     public void keyPressed(int slot) {
+        actionsQueue.add(slot);
+        //something of synchronizetion
+ 
         // TODO implement
     }
 
@@ -125,6 +146,9 @@ public class Player implements Runnable {
      */
     public void point() {
         // TODO implement
+        score++;
+
+        //need to add freeze here for the thread
 
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
         env.ui.setScore(id, ++score);
