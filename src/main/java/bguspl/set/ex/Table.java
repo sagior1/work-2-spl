@@ -28,6 +28,11 @@ public class Table {
      * Mapping between a card and the slot it is in (null if none).
      */
     protected final Integer[] cardToSlot; // slot per card (if any)
+    
+    /**
+     * Keeping track of all tokens placed for each player 
+     */
+    List<Integer>[] tokensPerPlayer;
 
     /**
      * Constructor for testing.
@@ -115,6 +120,7 @@ public class Table {
      * @param slot   - the slot on which to place the token.
      */
     public void placeToken(int player, int slot) {
+
         // TODO implement
     }
 
@@ -125,7 +131,23 @@ public class Table {
      * @return       - true iff a token was successfully removed.
      */
     public boolean removeToken(int player, int slot) {
+        int card=slotToCard[slot];
+
         // TODO implement
+        return false;
+    }
+    /**
+     * Checks if a player has a token in a given slot
+     * @param player - the player the token belongs to.
+     * @param slot   - the slot from which to check if the player has a token
+     * @return       - true iff a player has a token in the given slot.
+     */
+    public boolean tokenExists(int player, int slot){
+        for (Integer i : tokensPerPlayer[player]) {
+            if(i==slot){
+                return true;
+            }
+        }
         return false;
     }
 }
