@@ -2,6 +2,7 @@ package bguspl.set.ex;
 
 import bguspl.set.Env;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
@@ -137,5 +138,22 @@ public class Dealer implements Runnable {
      */
     private void announceWinners() {
         // TODO implement
+    }
+
+    /**
+     * Checks if a player has a correct set
+     * @param player - the player the tokens belongs to.
+     * @return       - true iff a player has a correct set 
+     */
+    public boolean playerHasSet(int player){
+        if(table.tokensPerPlayer[player].size()<3){
+            return false;
+        }
+        int[] cards=new int[3];
+        Iterator<Integer> iter = table.tokensPerPlayer[player].iterator();
+        for(int i=0;i<3&&iter.hasNext();i++){
+            cards[i]=table.slotToCard[iter.next()];
+        }
+        return env.util.testSet(cards);
     }
 }
