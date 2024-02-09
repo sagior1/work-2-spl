@@ -40,7 +40,7 @@ public class Dealer implements Runnable {
     private long reshuffleTime = Long.MAX_VALUE;
 
     /**
-     * The time when the dealer needs to reshuffle the deck due to turn timeout.
+     * a queue of players who declared that they have a set
      */
     private BlockingQueue<Player> declaredSets;
 
@@ -49,6 +49,7 @@ public class Dealer implements Runnable {
         this.table = table;
         this.players = players;
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
+        
     }
 
     /**
@@ -100,7 +101,7 @@ public class Dealer implements Runnable {
      */
     private void removeCardsFromTable() {//need to make sure if there are sets found here
         while(!declaredSets.isEmpty()){
-            Player player = declaredSets.peek();
+            Player player = declaredSets.remove();
             if(table.tokensPerPlayer[player.getid()].size()==3){
                 if(playerHasSet(player.getid())){
                     player.score();
@@ -109,6 +110,7 @@ public class Dealer implements Runnable {
                         int slot=iter.next();
                         table.removeCard(slot);
                         //table.removeTokensFromSlot(slot);
+                        updateTimerDisplay(true);
                     }
                 }
                 else{
@@ -122,9 +124,13 @@ public class Dealer implements Runnable {
      * Check if any cards can be removed from the deck and placed on the table.
      */
     private void placeCardsOnTable() {
-        // TODO implement
+        for(int i:table.slotToCard){
+            if(!deck.isEmpty()&&table.slotToCard[i]==null){
+                int card=deck.remove(deck.size()-1);
+                table.placeCard(card, i);
+            }
+        }
     }
-
     /**
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
      */
@@ -136,7 +142,14 @@ public class Dealer implements Runnable {
      * Reset and/or update the countdown and the countdown display.
      */
     private void updateTimerDisplay(boolean reset) {
-        // TODO implement
+        if(reset){
+            env.config.turnTimeoutMillis=reshuffleTime;
+            env.ui.setCountdown(reshuffleTime, false);
+        }
+        else{
+            if(re)
+        }
+
     }
 
     /**
@@ -159,9 +172,6 @@ public class Dealer implements Runnable {
      * @return       - true iff a player has a correct set 
      */
     public boolean playerHasSet(int player){
-        if(table.tokensPerPlayer[player].size()<3){
-            return false;
-        }
         int[] cards=new int[3];
         Iterator<Integer> iter = table.tokensPerPlayer[player].iterator();
         for(int i=0;i<3&&iter.hasNext();i++){
@@ -169,4 +179,14 @@ public class Dealer implements Runnable {
         }
         return env.util.testSet(cards);
     }
+    /**
+     * adds a player who declared on a set
+     * @param player - the player who declared.
+     */
+    public void addToDeclaredQueue(Player player){
+        declaredSets.add(player);
+    }
+
+
+
 }
