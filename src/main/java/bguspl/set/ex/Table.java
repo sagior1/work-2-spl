@@ -164,6 +164,31 @@ public class Table {
         return false;//need to finish
     }
 
+        /**
+     * removes all the cards from the table and add them to a list (to later return them to "deck" and shuffle deck)
+     */
+    public void removeAllCardsFromTable(){
+        for (int i=0; i<slotToCard.length; i++){
+            Integer card = slotToCard[i];
+            slotToCard[i] = null;
+            cardToSlot[card] = null;
+        }
+        
+    }
+
+     /**
+     * inserts all the cards in table to a list
+     * @return       - a list with all the Integers that represents the cards that was on the table.
+     */
+    public List<Integer> tableToList(){
+        List<Integer> cardsOnTable = new ArrayList<>(); 
+        for (int i=0; i<slotToCard.length; i++){
+            Integer card = slotToCard[i];
+            cardsOnTable.add(card);
+        }
+        return cardsOnTable;
+    }
+
 
 }
 
