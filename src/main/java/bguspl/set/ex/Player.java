@@ -87,7 +87,21 @@ public class Player implements Runnable {
         if (!human) createArtificialIntelligence();
 
         while (!terminate) {
-
+            if (!actionsQueue.isEmpty()){
+                //TODO - we need to ensure that the queue cant get more than 3 objects
+                int slot = actionsQueue.remove();
+                //If the token was already pressed, remove it from the table, and if not add it to the table.
+                if(table.tokenExists(id, slot)){
+                    table.removeToken(id, slot);
+                }
+                else{
+                    table.placeToken(id, slot);
+                    if(table.tokensPerPlayer[id].size()==3){
+                        dealer.addToDeclaredQueue(this);
+                    }
+                    //freeze until dealer releases
+                }
+            }
             // TODO implement main player loop
         }
         if (!human) try { aiThread.join(); } catch (InterruptedException ignored) {}
@@ -103,22 +117,7 @@ public class Player implements Runnable {
         aiThread = new Thread(() -> {
             env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
             while (!terminate) {
-                if (!actionsQueue.isEmpty()){
-                    //TODO - we need to ensure that the queue cant get more than 3 objects
-                    int slot = actionsQueue.peek();
-                    //If the token was already pressed, remove it from the table, and if not add it to the table.
-                    if(table.tokenExists(id, slot)){
-                        table.removeToken(id, slot);
-                    }
-                    else{
-                        table.placeToken(id, slot);
-                        if(table.tokensPerPlayer[id].size()==3){
-                            dealer.addToDeclaredQueue(this);
-                        }
-                        //freeze until dealer releases
-                    }
-                    actionsQueue.remove();
-                }
+
                 // TODO implement player key press simulator
                 try {
                     synchronized (this) { wait(); }
