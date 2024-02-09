@@ -81,7 +81,7 @@ public class Player implements Runnable {
      * The main player thread of each player starts here (main loop for the player thread).
      */
     @Override
-    public void run() {
+     public void run() {
         playerThread = Thread.currentThread();
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
         if (!human) createArtificialIntelligence();
@@ -98,6 +98,11 @@ public class Player implements Runnable {
                     table.placeToken(id, slot);
                     if(table.tokensPerPlayer[id].size()==3){
                         dealer.addToDeclaredQueue(this);
+                        playerThread.wait();
+                        try {
+                            synchronized (this) { wait(); }
+                        } catch (InterruptedException ignored) {}
+                        actionsQueue.clear();
                     }
                     //freeze until dealer releases
                 }
