@@ -110,9 +110,12 @@ public class Table {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
-        cardToSlot[slotToCard[slot]]=null;
-        slotToCard[slot] = null;
-        env.ui.removeCard(slot);
+        //mycode
+        Integer cardToRemove = slotToCard[slot];
+        slotToCard[slot] = null; //TODO - see if its supposed to be null or something else
+        cardToSlot[cardToRemove] = null; //TODO - see if its supposed to be null or something else
+
+        // TODO implement
     }
 
     /**
@@ -121,7 +124,7 @@ public class Table {
      * @param slot   - the slot on which to place the token.
      */
     public void placeToken(int player, int slot) {
-
+        tokensPerPlayer[player].add(slot);
         // TODO implement
     }
 
@@ -132,10 +135,12 @@ public class Table {
      * @return       - true iff a token was successfully removed.
      */
     public boolean removeToken(int player, int slot) {
-        int card=slotToCard[slot];
-
-        // TODO implement
-        return false;
+        if ( tokensPerPlayer[player].contains(slot)){
+            tokensPerPlayer[player].remove(slot);
+            return true;
+        }
+        else {return false;}
+        
     }
     /**
      * Checks if a player has a token in a given slot
