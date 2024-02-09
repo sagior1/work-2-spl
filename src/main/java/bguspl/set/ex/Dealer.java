@@ -99,10 +99,23 @@ public class Dealer implements Runnable {
      * Checks cards should be removed from the table and removes them.
      */
     private void removeCardsFromTable() {//need to make sure if there are sets found here
-        for(Integer i=0;i<players.length;i++){
-            
+        while(!declaredSets.isEmpty()){
+            Player player = declaredSets.peek();
+            if(table.tokensPerPlayer[player.getid()].size()==3){
+                if(playerHasSet(player.getid())){
+                    player.score();
+                    Iterator<Integer> iter = table.tokensPerPlayer[player.getid()].iterator();
+                    for(int i=0;i<3&&iter.hasNext();i++){
+                        int slot=iter.next();
+                        table.removeCard(slot);
+                        //table.removeTokensFromSlot(slot);
+                    }
+                }
+                else{
+                    player.penalty();
+                }
+            }
         }
-        // TODO implement
     }
 
     /**
