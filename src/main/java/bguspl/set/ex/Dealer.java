@@ -3,6 +3,7 @@ package bguspl.set.ex;
 import bguspl.set.Env;
 
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,6 +38,11 @@ public class Dealer implements Runnable {
      */
     private long reshuffleTime = Long.MAX_VALUE;
 
+    /**
+     * The time when the dealer needs to reshuffle the deck due to turn timeout.
+     */
+    private BlockingQueue<Player> declaredSets;
+
     public Dealer(Env env, Table table, Player[] players) {
         this.env = env;
         this.table = table;
@@ -65,7 +71,7 @@ public class Dealer implements Runnable {
      */
     private void timerLoop() {
         while (!terminate && System.currentTimeMillis() < reshuffleTime) {
-            sleepUntilWokenOrTimeout();
+            sleepUntilWokenOrTimeout();// this is probably about synchronization
             updateTimerDisplay(false);
             removeCardsFromTable();
             placeCardsOnTable();
@@ -91,7 +97,10 @@ public class Dealer implements Runnable {
     /**
      * Checks cards should be removed from the table and removes them.
      */
-    private void removeCardsFromTable() {
+    private void removeCardsFromTable() {//need to make sure if there are sets found here
+        for(Integer i=0;i<players.length;i++){
+            
+        }
         // TODO implement
     }
 
