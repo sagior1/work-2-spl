@@ -1,6 +1,7 @@
 package bguspl.set.ex;
 
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 
 import bguspl.set.Env;
 
@@ -52,8 +53,13 @@ public class Player implements Runnable {
      */
     private int score;
 
+    /**
+     * The dealer of the game
+     */
+    private Dealer dealer;
+
     //manages the actions the player wants to make 
-    Queue<Integer> actionsQueue;
+    BlockingQueue<Integer> actionsQueue;
     /**
      * The class constructor.
      *
@@ -68,6 +74,7 @@ public class Player implements Runnable {
         this.table = table;
         this.id = id;
         this.human = human;
+        this.dealer=dealer;
     }
 
     /**
@@ -97,7 +104,7 @@ public class Player implements Runnable {
             env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
             while (!terminate) {
                 if (!actionsQueue.isEmpty()){
-                    //TODO - we need to ensure that the queue cant get more then 3 objects
+                    //TODO - we need to ensure that the queue cant get more than 3 objects
                     int slot = actionsQueue.peek();
                     //If the token was already pressed, remove it from the table, and if not add it to the table.
                     if(table.tokenExists(id, slot)){
@@ -105,7 +112,10 @@ public class Player implements Runnable {
                     }
                     else{
                         table.placeToken(id, slot);
-                        
+                        if(table.tokensPerPlayer[id].size()==3){
+                            dealer.addToDeclaredQueue(this);
+                        }
+                        //freeze until dealer releases
                     }
                     actionsQueue.remove();
                 }
@@ -134,7 +144,7 @@ public class Player implements Runnable {
     public void keyPressed(int slot) {
         actionsQueue.add(slot);
         //something of synchronizetion
- 
+
         // TODO implement
     }
 
@@ -164,8 +174,7 @@ public class Player implements Runnable {
     public int score() {
         return score;
     }
-
-     public int getId(){
-        return this.id;
+    public int getid(){
+        return id;
     }
 }
