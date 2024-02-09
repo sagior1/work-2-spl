@@ -164,4 +164,8 @@ public class Player implements Runnable {
     public int score() {
         return score;
     }
+
+     public int getId(){
+        return this.id;
+    }
 }
