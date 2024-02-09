@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.Iterator;
+
 
 /**
  * This class contains the data that is visible to the player.
@@ -32,7 +34,7 @@ public class Table {
     /**
      * Keeping track of all tokens placed for each player 
      */
-    List<Integer>[] tokensPerPlayer;
+    protected List<Integer>[] tokensPerPlayer;
 
     /**
      * Constructor for testing.
@@ -98,8 +100,7 @@ public class Table {
 
         cardToSlot[card] = slot;
         slotToCard[slot] = card;
-
-        // TODO implement
+        env.ui.placeCard(card, slot);
     }
 
     /**
@@ -110,12 +111,11 @@ public class Table {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
-        //mycode
         Integer cardToRemove = slotToCard[slot];
         slotToCard[slot] = null; //TODO - see if its supposed to be null or something else
+        env.ui.removeCard(slot);
         cardToSlot[cardToRemove] = null; //TODO - see if its supposed to be null or something else
 
-        // TODO implement
     }
 
     /**
@@ -124,8 +124,10 @@ public class Table {
      * @param slot   - the slot on which to place the token.
      */
     public void placeToken(int player, int slot) {
-        tokensPerPlayer[player].add(slot);
-        // TODO implement
+        if(slotToCard[slot]!=null){
+            tokensPerPlayer[player].add(slot);
+            env.ui.placeToken(player, slot);
+        }
     }
 
     /**
@@ -137,6 +139,7 @@ public class Table {
     public boolean removeToken(int player, int slot) {
         if ( tokensPerPlayer[player].contains(slot)){
             tokensPerPlayer[player].remove(slot);
+            env.ui.removeToken(player, slot);
             return true;
         }
         else {return false;}
@@ -156,4 +159,12 @@ public class Table {
         }
         return false;
     }
+    public boolean tableHasSets(){
+
+        return false;//need to finish
+    }
+
+
 }
+
+
