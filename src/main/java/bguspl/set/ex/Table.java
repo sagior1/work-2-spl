@@ -136,7 +136,7 @@ public class Table {
         }
     }
 
-    /**
+     /**
      * Removes a token of a player from a grid slot.
      * @param player - the player the token belongs to.
      * @param slot   - the slot from which to remove the token.
@@ -145,11 +145,10 @@ public class Table {
     public boolean removeToken(int player, int slot) {
         if ( tokensPerPlayer[player].contains(slot)){
             tokensPerPlayer[player].remove(slot);
-            env.ui.removeToken(player, slot);
+            env.ui.removeToken(player,slot);
             return true;
         }
         else {return false;}
-        
     }
 
      /**
@@ -163,6 +162,7 @@ public class Table {
                 removeToken(i, slot);
             }
         }
+        env.ui.removeTokens(slot);
     }
     /**
      * Checks if a player has a token in a given slot
@@ -191,6 +191,7 @@ public class Table {
             Integer card = slotToCard[i];
             slotToCard[i] = null;
             cardToSlot[card] = null;
+            env.ui.removeCard(card);
         }
         
     }
