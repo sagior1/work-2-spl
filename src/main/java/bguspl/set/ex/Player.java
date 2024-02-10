@@ -117,12 +117,15 @@ public class Player implements Runnable {
      * Creates an additional thread for an AI (computer) player. The main loop of this thread repeatedly generates
      * key presses. If the queue of key presses is full, the thread waits until it is not full.
      */
-    private void createArtificialIntelligence() {
+     private void createArtificialIntelligence() {
         // note: this is a very, very smart AI (!)
         aiThread = new Thread(() -> {
             env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
             while (!terminate) {
-
+                int randomSlot = getRandomSlot();
+                try{
+                actionsQueue.put(randomSlot);}
+                catch(InterruptedException ignored){}
                 // TODO implement player key press simulator
                 try {
                     synchronized (this) { wait(); }
