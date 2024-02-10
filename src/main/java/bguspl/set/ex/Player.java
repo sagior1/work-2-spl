@@ -193,7 +193,7 @@ public class Player implements Runnable {
     public void penalty() {
          env.ui.setFreeze(id, env.config.penaltyFreezeMillis);
         try{
-            Thread.sleep(3000);
+            Thread.sleep(env.config.penaltyFreezeMillis);
             //TODO notifyAll();
         }catch(InterruptedException ignored){}
         
