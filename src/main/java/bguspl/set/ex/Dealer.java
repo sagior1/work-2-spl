@@ -121,18 +121,20 @@ public class Dealer implements Runnable {
             Player player = declaredSets.remove();
             if(table.tokensPerPlayer[player.getid()].size()==3){
                 if(playerHasSet(player.getid())){
-                    player.notifyAll();//TODO dont know if this is a good idea
-                    player.score();
-                    Iterator<Integer> iter = table.tokensPerPlayer[player.getid()].iterator();
-                    for(int i=0;i<3&&iter.hasNext();i++){
-                        int slot=iter.next();
+                    //player.notifyAll();//TODO dont know if this is a good idea
+                    player.point();
+                    //Iterator<Integer> iter = table.tokensPerPlayer[player.getid()].iterator();
+                    for(Integer i=0;i<3;i++){
+                        System.out.println("enterted removal fo first slot");
+                        int slot=table.tokensPerPlayer[player.getid()].get(0);
                         table.removeCard(slot);
                         table.removeTokensFromSlot(slot);
                         updateTimerDisplay(true);
+                        System.out.println("finished first remove of slot");
                     }
                 }
                 else{
-                    player.notifyAll();//TODO dont know if this is a good idea
+                    //player.notifyAll();//TODO dont know if this is a good idea
                     player.penalty();
                 }
             }
