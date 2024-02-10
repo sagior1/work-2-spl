@@ -121,6 +121,7 @@ public class Table {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
         //mycode
+        env.ui.removeCard(slot);
         Integer cardToRemove = slotToCard[slot];
         slotToCard[slot] = null; //TODO - see if its supposed to be null or something else
         cardToSlot[cardToRemove] = null; //TODO - see if its supposed to be null or something else
@@ -147,8 +148,8 @@ public class Table {
      * @return       - true iff a token was successfully removed.
      */
     public boolean removeToken(int player, int slot) {
-        if ( tokensPerPlayer[player].contains(slot)){
-            tokensPerPlayer[player].remove(slot);
+        if (tokenExists(player,slot)){
+            tokensPerPlayer[player].remove(tokensPerPlayer[player].indexOf(slot));
             env.ui.removeToken(player,slot);
             return true;
         }
@@ -167,6 +168,7 @@ public class Table {
                 removeToken(i, slot);
             }
         }
+        System.out.println("finished removeTokensFromSlot");
         env.ui.removeTokens(slot);
     }
     /**
