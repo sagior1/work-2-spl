@@ -151,7 +151,7 @@ public class Table {
      * @param slot   - the slot from which to remove the token.
      * @return       - no value.
      */
-    public void removeTokenFromSlot(int slot){
+    public void removeTokensFromSlot(int slot){
         for(int i=0; i<tokensPerPlayer.length; i++){
             if (tokensPerPlayer[i].contains(slot)){
                 removeToken(i, slot);
