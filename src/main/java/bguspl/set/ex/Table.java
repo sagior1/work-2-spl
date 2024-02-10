@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 
 /**
@@ -37,7 +38,7 @@ public class Table {
     /**
      * Keeping track of all tokens placed for each player 
      */
-    List<Integer>[] tokensPerPlayer;
+    protected List<Integer>[] tokensPerPlayer;
 
     /**
      * Constructor for testing.
@@ -50,6 +51,11 @@ public class Table {
         this.env = env;
         this.slotToCard = slotToCard;
         this.cardToSlot = cardToSlot;
+        this.tokensPerPlayer = (List<Integer>[]) new List[env.config.players]; // Assuming env.config.players is the size you want
+        for (int i = 0; i < this.tokensPerPlayer.length; i++) {
+        this.tokensPerPlayer[i] = new ArrayList<Integer>();
+        }
+
     }
 
     /**
@@ -129,9 +135,7 @@ public class Table {
      */
     public void placeToken(int player, int slot) {
         if(slotToCard[slot]!=null){
-        tokensPerPlayer[player].add(slot);
             tokensPerPlayer[player].add(slot);
-        // TODO implement
             env.ui.placeToken(player, slot);
         }
     }
@@ -173,7 +177,7 @@ public class Table {
      */
     public boolean tokenExists(int player, int slot){
         for (Integer i : tokensPerPlayer[player]) {
-            if(i==slot){
+            if(i!=null&&i==slot){
                 return true;
             }
         }
