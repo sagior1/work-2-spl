@@ -211,4 +211,16 @@ public class Table {
         }
         return cardsOnTable;
     }
+
+    /**
+     * checks if there is a set on the table
+     * @return       - true if thee is a set on the table, and false if not
+     */
+   public boolean tableHasSets(){
+        List<Integer> cardsOnTable = tableToList();
+        if (env.util.findSets(cardsOnTable, 1).size() > 0){
+            return true;
+        }
+        else {return false;}
+   }
 }
