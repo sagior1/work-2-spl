@@ -68,6 +68,7 @@ public class Dealer implements Runnable {
     public void run() {
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
         while (!shouldFinish()) {
+            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;//TODO not sure if this is good
             placeCardsOnTable();
             timerLoop();
             updateTimerDisplay(false);
@@ -94,6 +95,7 @@ public class Dealer implements Runnable {
      */
     public void terminate() {
         terminate = true;
+        table.removeAllCardsFromTable();
         // TODO implement
     }
 
@@ -136,8 +138,7 @@ public class Dealer implements Runnable {
      * Check if any cards can be removed from the deck and placed on the table.
      */
     private void placeCardsOnTable() {
-        int firstSlot=env.config.columns + 1 ;
-        for(int i=firstSlot;i<table.slotToCard.length;i++){
+        for(int i=0;i<table.slotToCard.length;i++){
             if(!deck.isEmpty()&&table.slotToCard[i]==null){
                 int card=deck.remove(deck.size()-1);
                 table.placeCard(card, i);
@@ -160,7 +161,7 @@ public class Dealer implements Runnable {
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
         }
             
-            env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
+        env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
 
     }
 
@@ -168,7 +169,7 @@ public class Dealer implements Runnable {
      * Returns all the cards from the table to the deck.
      */
     private void removeAllCardsFromTable() {
-        // TODO implement
+        shuffleDeck();
     }
 
     /**
@@ -227,8 +228,6 @@ public class Dealer implements Runnable {
         deck.addAll(cardsFromTable);
         Collections.shuffle(deck);
         table.removeAllCardsFromTable();
-
-        ///REMEMBER when we run it we need to use place cards on table!
     }
 
 
