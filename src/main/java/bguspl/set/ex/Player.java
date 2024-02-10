@@ -159,11 +159,11 @@ public class Player implements Runnable {
      * @post - the player's score is updated in the ui.
      */
     public void point() {
-        // TODO implement
         score++;
-
-        //need to add freeze here for the thread
-
+        try{
+            Thread.sleep(env.config.pointFreezeMillis);
+        }catch(InterruptedException ignored){}
+        env.ui.setFreeze(id, env.config.pointFreezeMillis);
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
         env.ui.setScore(id, ++score);
     }
