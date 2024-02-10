@@ -87,14 +87,17 @@ public class Player implements Runnable {
      */
     @Override
     public void run() {
+
         playerThread = Thread.currentThread();
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
         if (!human) createArtificialIntelligence();
 
         while (!terminate) {
             if (!actionsQueue.isEmpty()){
+
                 //TODO - we need to ensure that the queue cant get more than 3 objects
                 int slot = actionsQueue.remove();
+                System.out.println(slot);
                 //If the token was already pressed, remove it from the table, and if not add it to the table.
                 if(table.tokenExists(id, slot)){
                     table.removeToken(id, slot);
@@ -191,7 +194,7 @@ public class Player implements Runnable {
     public void penalty() {
         try{
             Thread.sleep(env.config.penaltyFreezeMillis);
-            notifyAll();
+            //TODO notifyAll();
         }catch(InterruptedException ignored){}
         
         env.ui.setFreeze(id, env.config.penaltyFreezeMillis);
