@@ -44,6 +44,11 @@ public class Dealer implements Runnable {
      */
     private BlockingQueue<Player> declaredSets;
 
+     /**
+     * The thread representing the dealer.
+     */
+    private Thread dealerThread;
+
     public Dealer(Env env, Table table, Player[] players) {
         this.env = env;
         this.table = table;
