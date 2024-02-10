@@ -172,7 +172,10 @@ public class Player implements Runnable {
      * Penalize a player and perform other related actions.
      */
     public void penalty() {
-        // TODO implement
+        try{
+            Thread.sleep(env.config.penaltyFreezeMillis);
+        }catch(InterruptedException ignored){}
+        env.ui.setFreeze(id, env.config.penaltyFreezeMillis);
     }
 
     public int score() {
