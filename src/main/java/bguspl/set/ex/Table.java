@@ -189,14 +189,14 @@ public class Table {
     /**
      * removes all the cards from the table and add them to a list (to later return them to "deck" and shuffle deck)
      */
-    public void removeAllCardsFromTable(){
+        public void removeAllCardsFromTable(){
         for (int i=0; i<slotToCard.length; i++){
             Integer card = slotToCard[i];
+            removeTokensFromSlot(i);
             env.ui.removeCard(i);
             slotToCard[i] = null;
             cardToSlot[card] = null;
-        }
-        
+        }  
     }
 
      /**
