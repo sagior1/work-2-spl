@@ -36,6 +36,11 @@ public class Table {
      */
     protected List<Integer>[] tokensPerPlayer;
 
+     /**
+     * keeps the value of the first slot by the calculation that was given in the assignment. 
+     */
+    public final int firstSlot;
+
     /**
      * Constructor for testing.
      *
@@ -44,10 +49,11 @@ public class Table {
      * @param cardToSlot - mapping between a card and the slot it is in (null if none).
      */
     public Table(Env env, Integer[] slotToCard, Integer[] cardToSlot) {
-
         this.env = env;
         this.slotToCard = slotToCard;
         this.cardToSlot = cardToSlot;
+        this.firstSlot = env.config.columns;
+
     }
 
     /**
