@@ -192,7 +192,7 @@ public class Dealer implements Runnable {
         declaredSets.add(player);
     }
 
-   /**
+  /**
      * adds all the cards that we removed from the tablr to deck and shuffle deck.
      * @return       - true iff a player has a correct set 
      */
@@ -200,6 +200,7 @@ public class Dealer implements Runnable {
         List<Integer> cardsFromTable = table.tableToList();
         deck.addAll(cardsFromTable);
         Collections.shuffle(deck);
+        table.removeAllCardsFromTable();
         ///REMEMBER when we run it we need to use place cards on table!
     }
 }
