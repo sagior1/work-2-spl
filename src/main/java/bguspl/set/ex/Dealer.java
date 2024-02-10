@@ -75,7 +75,7 @@ public class Dealer implements Runnable {
             updateTimerDisplay(false);
         }
         while (!shouldFinish()) {
-            
+            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
             Collections.shuffle(deck);
             placeCardsOnTable();
             timerLoop();
