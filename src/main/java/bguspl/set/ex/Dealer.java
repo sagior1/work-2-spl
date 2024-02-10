@@ -181,7 +181,9 @@ public class Dealer implements Runnable {
      * Returns all the cards from the table to the deck.
      */
     private void removeAllCardsFromTable() {
-        shuffleDeck();
+        if(!table.tableHasSets()){
+            shuffleDeck();
+        }
     }
 
     /**
