@@ -102,15 +102,17 @@ public class Player implements Runnable {
                     table.removeToken(id, slot);
                 }
                 else{
-                    table.placeToken(id, slot);
-                    if(table.tokensPerPlayer[id].size()==3){
-                        dealer.addToDeclaredQueue(this);
-                        // try {
-                        //     synchronized (this) { wait(); }
-                        // } catch (InterruptedException ignored) {}
-                        actionsQueue.clear();
+                    if(table.tokensPerPlayer[id].size()<3){
+                        table.placeToken(id, slot);
+                        if(table.tokensPerPlayer[id].size()==3){
+                            dealer.addToDeclaredQueue(this);
+                            // try {
+                            //     synchronized (this) { wait(); }
+                            // } catch (InterruptedException ignored) {}
+                            actionsQueue.clear();
+                        }
+                        //freeze until dealer releases
                     }
-                    //freeze until dealer releases
                 }
             }
             // TODO implement main player loop
@@ -183,10 +185,9 @@ public class Player implements Runnable {
                 env.ui.setFreeze(id, i);
                 dealer.updateTimerDisplay(false);
                 Thread.sleep(1000);
-            }
-            env.ui.setFreeze(id, 0);        }catch(InterruptedException ignored){}
-        
-        env.ui.setFreeze(id, env.config.pointFreezeMillis);
+            }env.ui.setFreeze(id, 0); 
+                   }catch(InterruptedException ignored){}
+        actionsQueue.clear();
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
         env.ui.setScore(id, ++score);
     }
@@ -201,11 +202,10 @@ public class Player implements Runnable {
                 env.ui.setFreeze(id, i);
                 dealer.updateTimerDisplay(false);
                 Thread.sleep(1000);
-                
             }
             env.ui.setFreeze(id, 0);
-            //TODO notifyAll();
         }catch(InterruptedException ignored){}
+        actionsQueue.clear();
     }
 
     public int score() {
