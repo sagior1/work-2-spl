@@ -75,6 +75,7 @@ public class Player implements Runnable {
         this.id = id;
         this.human = human;
         this.dealer=dealer;
+        this.terminate = false;
     }
 
     /**
@@ -140,7 +141,20 @@ public class Player implements Runnable {
      * Called when the game should be terminated.
      */
     public void terminate() {
+        terminate = true;
         // TODO implement
+    }
+
+    /**
+     * This method gets a random slot from the table.
+     *
+     * @return slot - a slot from the table.
+     */
+    public int getRandomSlot(){
+        Random random = new Random();
+        int min = table.firstSlot;
+        int max = table.firstSlot + table.slotToCard.length;
+        return random.nextInt(max - min + 1) + min;
     }
 
     /**
