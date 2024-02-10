@@ -1,7 +1,10 @@
 package bguspl.set.ex;
 
+import bguspl.set.Config;
 import bguspl.set.Env;
+import bguspl.set.UserInterfaceSwing;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -34,12 +37,7 @@ public class Table {
     /**
      * Keeping track of all tokens placed for each player 
      */
-    protected List<Integer>[] tokensPerPlayer;
-
-     /**
-     * keeps the value of the first slot by the calculation that was given in the assignment. 
-     */
-    public final int firstSlot;
+    List<Integer>[] tokensPerPlayer;
 
     /**
      * Constructor for testing.
@@ -52,8 +50,6 @@ public class Table {
         this.env = env;
         this.slotToCard = slotToCard;
         this.cardToSlot = cardToSlot;
-        this.firstSlot = env.config.columns;
-
     }
 
     /**
@@ -107,6 +103,7 @@ public class Table {
         cardToSlot[card] = slot;
         slotToCard[slot] = card;
         env.ui.placeCard(card, slot);
+        // TODO implement
     }
 
     /**
@@ -117,11 +114,12 @@ public class Table {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
+        //mycode
         Integer cardToRemove = slotToCard[slot];
         slotToCard[slot] = null; //TODO - see if its supposed to be null or something else
-        env.ui.removeCard(slot);
         cardToSlot[cardToRemove] = null; //TODO - see if its supposed to be null or something else
 
+        // TODO implement
     }
 
     /**
@@ -131,12 +129,14 @@ public class Table {
      */
     public void placeToken(int player, int slot) {
         if(slotToCard[slot]!=null){
+        tokensPerPlayer[player].add(slot);
             tokensPerPlayer[player].add(slot);
+        // TODO implement
             env.ui.placeToken(player, slot);
         }
     }
 
-     /**
+    /**
      * Removes a token of a player from a grid slot.
      * @param player - the player the token belongs to.
      * @param slot   - the slot from which to remove the token.
@@ -149,10 +149,11 @@ public class Table {
             return true;
         }
         else {return false;}
+        
     }
 
      /**
-     * Removes a token from sfesific slot for all the players.
+     * Removes a token in sfesific slot from all the players.
      * @param slot   - the slot from which to remove the token.
      * @return       - no value.
      */
@@ -178,12 +179,8 @@ public class Table {
         }
         return false;
     }
-    public boolean tableHasSets(){
-
-        return false;//need to finish
-    }
-
-        /**
+    
+    /**
      * removes all the cards from the table and add them to a list (to later return them to "deck" and shuffle deck)
      */
     public void removeAllCardsFromTable(){
@@ -208,8 +205,4 @@ public class Table {
         }
         return cardsOnTable;
     }
-
-
 }
-
-
