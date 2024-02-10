@@ -145,6 +145,19 @@ public class Table {
         else {return false;}
         
     }
+
+     /**
+     * Removes a token from sfesific slot for all the players.
+     * @param slot   - the slot from which to remove the token.
+     * @return       - no value.
+     */
+    public void removeTokenFromSlot(int slot){
+        for(int i=0; i<tokensPerPlayer.length; i++){
+            if (tokensPerPlayer[i].contains(slot)){
+                removeToken(i, slot);
+            }
+        }
+    }
     /**
      * Checks if a player has a token in a given slot
      * @param player - the player the token belongs to.
