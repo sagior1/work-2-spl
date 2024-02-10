@@ -2,12 +2,16 @@ package bguspl.set.ex;
 
 import bguspl.set.Env;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+import java.util.Collections;
 /**
  * This class manages the dealer's threads and data
  */
@@ -43,8 +47,7 @@ public class Dealer implements Runnable {
      * a queue of players who declared that they have a set
      */
     private BlockingQueue<Player> declaredSets;
-
-     /**
+    /**
      * The thread representing the dealer.
      */
     private Thread dealerThread;
@@ -54,7 +57,7 @@ public class Dealer implements Runnable {
         this.table = table;
         this.players = players;
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
-        
+        declaredSets=new LinkedBlockingQueue<Player>();
     }
 
     /**
@@ -114,7 +117,7 @@ public class Dealer implements Runnable {
                     for(int i=0;i<3&&iter.hasNext();i++){
                         int slot=iter.next();
                         table.removeCard(slot);
-                        //table.removeTokensFromSlot(slot);
+                        table.removeTokensFromSlot(slot);
                         updateTimerDisplay(true);
                     }
                 }
@@ -129,7 +132,8 @@ public class Dealer implements Runnable {
      * Check if any cards can be removed from the deck and placed on the table.
      */
     private void placeCardsOnTable() {
-        for(int i:table.slotToCard){
+        int firstSlot=env.config.columns + 1 ;
+        for(int i=firstSlot;i<table.slotToCard.length;i++){
             if(!deck.isEmpty()&&table.slotToCard[i]==null){
                 int card=deck.remove(deck.size()-1);
                 table.placeCard(card, i);
@@ -140,6 +144,7 @@ public class Dealer implements Runnable {
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
      */
     private void sleepUntilWokenOrTimeout() {
+        //dealerThread.sleep(1);
         // TODO implement
     }
 
@@ -148,12 +153,10 @@ public class Dealer implements Runnable {
      */
     private void updateTimerDisplay(boolean reset) {
         if(reset){
-            reshuffleTime=env.config.turnTimeoutMillis;
-            env.ui.setCountdown(reshuffleTime, false);
+            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
         }
-        else{
-            if()
-        }
+            
+            env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
 
     }
 
@@ -168,7 +171,27 @@ public class Dealer implements Runnable {
      * Check who is/are the winner/s and displays them.
      */
     private void announceWinners() {
-        // TODO implement
+        Integer maxScore=Integer.MIN_VALUE;
+        List<Player> winners = new LinkedList<>();
+        for (Player player : players) {
+            if(player.score()>maxScore){
+                maxScore=player.score();
+            }
+        }
+        for (Player player : players) {
+            if(player.score()==maxScore){
+                winners.add(player);
+            }
+        }
+        int[] winnersArray=new int[winners.size()];
+        int i=0;
+        for (Player player : winners) {
+            winnersArray[i]=player.getid();
+            i++;
+        }
+        if(winners.size()==1){
+            env.ui.announceWinner(winnersArray);
+        }
     }
 
     /**
@@ -191,8 +214,7 @@ public class Dealer implements Runnable {
     public void addToDeclaredQueue(Player player){
         declaredSets.add(player);
     }
-
-  /**
+    /**
      * adds all the cards that we removed from the tablr to deck and shuffle deck.
      * @return       - true iff a player has a correct set 
      */
@@ -201,6 +223,9 @@ public class Dealer implements Runnable {
         deck.addAll(cardsFromTable);
         Collections.shuffle(deck);
         table.removeAllCardsFromTable();
+
         ///REMEMBER when we run it we need to use place cards on table!
     }
+
+
 }
