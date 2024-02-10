@@ -112,6 +112,7 @@ public class Dealer implements Runnable {
             Player player = declaredSets.remove();
             if(table.tokensPerPlayer[player.getid()].size()==3){
                 if(playerHasSet(player.getid())){
+                    player.notifyAll();//TODO dont know if this is a good idea
                     player.score();
                     Iterator<Integer> iter = table.tokensPerPlayer[player.getid()].iterator();
                     for(int i=0;i<3&&iter.hasNext();i++){
@@ -122,6 +123,7 @@ public class Dealer implements Runnable {
                     }
                 }
                 else{
+                    player.notifyAll();//TODO dont know if this is a good idea
                     player.penalty();
                 }
             }
