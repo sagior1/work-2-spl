@@ -179,8 +179,12 @@ public class Player implements Runnable {
      */
     public void point() {
         try{
-            Thread.sleep(env.config.pointFreezeMillis);
-        }catch(InterruptedException ignored){}
+            for (long i = env.config.pointFreezeMillis; i > 0; i -= 1000) {
+                env.ui.setFreeze(id, i);
+                dealer.updateTimerDisplay(false);
+                Thread.sleep(1000);
+            }
+            env.ui.setFreeze(id, 0);        }catch(InterruptedException ignored){}
         
         env.ui.setFreeze(id, env.config.pointFreezeMillis);
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
@@ -191,13 +195,17 @@ public class Player implements Runnable {
      * Penalize a player and perform other related actions.
      */
     public void penalty() {
-         env.ui.setFreeze(id, env.config.penaltyFreezeMillis);
+         
         try{
-            Thread.sleep(env.config.penaltyFreezeMillis);
+            for(long i=env.config.penaltyFreezeMillis;i>0;i-=1000){
+                env.ui.setFreeze(id, i);
+                dealer.updateTimerDisplay(false);
+                Thread.sleep(1000);
+                
+            }
+            env.ui.setFreeze(id, 0);
             //TODO notifyAll();
         }catch(InterruptedException ignored){}
-        
-        
     }
 
     public int score() {
