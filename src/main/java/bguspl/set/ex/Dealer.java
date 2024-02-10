@@ -58,6 +58,7 @@ public class Dealer implements Runnable {
         this.players = players;
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
         declaredSets=new LinkedBlockingQueue<Player>();
+        terminate = false;
     }
 
     /**
@@ -92,6 +93,7 @@ public class Dealer implements Runnable {
      * Called when the game should be terminated.
      */
     public void terminate() {
+        terminate = true;
         // TODO implement
     }
 
