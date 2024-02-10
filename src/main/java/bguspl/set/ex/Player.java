@@ -1,7 +1,9 @@
 package bguspl.set.ex;
 
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import bguspl.set.Env;
 
@@ -75,14 +77,16 @@ public class Player implements Runnable {
         this.id = id;
         this.human = human;
         this.dealer=dealer;
-        this.terminate = false;
+        this.terminate=false;
+        this.actionsQueue = new LinkedBlockingQueue<>(3);
+
     }
 
     /**
      * The main player thread of each player starts here (main loop for the player thread).
      */
     @Override
-     public void run() {
+    public void run() {
         playerThread = Thread.currentThread();
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
         if (!human) createArtificialIntelligence();
@@ -99,7 +103,6 @@ public class Player implements Runnable {
                     table.placeToken(id, slot);
                     if(table.tokensPerPlayer[id].size()==3){
                         dealer.addToDeclaredQueue(this);
-                        playerThread.wait();
                         try {
                             synchronized (this) { wait(); }
                         } catch (InterruptedException ignored) {}
@@ -118,7 +121,7 @@ public class Player implements Runnable {
      * Creates an additional thread for an AI (computer) player. The main loop of this thread repeatedly generates
      * key presses. If the queue of key presses is full, the thread waits until it is not full.
      */
-     private void createArtificialIntelligence() {
+    private void createArtificialIntelligence() {
         // note: this is a very, very smart AI (!)
         aiThread = new Thread(() -> {
             env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
@@ -127,7 +130,6 @@ public class Player implements Runnable {
                 try{
                 actionsQueue.put(randomSlot);}
                 catch(InterruptedException ignored){}
-                // TODO implement player key press simulator
                 try {
                     synchronized (this) { wait(); }
                 } catch (InterruptedException ignored) {}
@@ -135,6 +137,17 @@ public class Player implements Runnable {
             env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
         }, "computer-" + id);
         aiThread.start();
+    }
+        /**
+     * This method gets a random slot from the table.
+     *
+     * @return slot - a slot from the table.
+     */
+    public int getRandomSlot(){
+        Random random = new Random();
+        int min = 0;
+        int max =table.slotToCard.length;
+        return random.nextInt(max - min + 1) + min;
     }
 
     /**
@@ -146,27 +159,14 @@ public class Player implements Runnable {
     }
 
     /**
-     * This method gets a random slot from the table.
-     *
-     * @return slot - a slot from the table.
-     */
-    public int getRandomSlot(){
-        Random random = new Random();
-        int min = table.firstSlot;
-        int max = table.firstSlot + table.slotToCard.length;
-        return random.nextInt(max - min + 1) + min;
-    }
-
-    /**
      * This method is called when a key is pressed.
      *
      * @param slot - the slot corresponding to the key pressed.
      */
     public void keyPressed(int slot) {
-        actionsQueue.add(slot);
-        //something of synchronizetion
-
-        // TODO implement
+        try {
+            actionsQueue.put(slot);
+        } catch (InterruptedException e) {}
     }
 
     /**
@@ -191,7 +191,9 @@ public class Player implements Runnable {
     public void penalty() {
         try{
             Thread.sleep(env.config.penaltyFreezeMillis);
+            notifyAll();
         }catch(InterruptedException ignored){}
+        
         env.ui.setFreeze(id, env.config.penaltyFreezeMillis);
     }
 
@@ -201,4 +203,6 @@ public class Player implements Runnable {
     public int getid(){
         return id;
     }
+
+
 }
