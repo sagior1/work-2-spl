@@ -59,6 +59,7 @@ public class Dealer implements Runnable {
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
         declaredSets=new LinkedBlockingQueue<Player>();
         terminate = false;
+        
     }
 
     /**
@@ -137,6 +138,7 @@ public class Dealer implements Runnable {
                     //player.notifyAll();//TODO dont know if this is a good idea
                     player.penalty();
                 }
+                
             }
         }
     }
@@ -167,8 +169,9 @@ public class Dealer implements Runnable {
         if(reset){
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
         }
-            
-        env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
+        else{ 
+            env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
+        }
 
     }
 
