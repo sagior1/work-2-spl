@@ -68,12 +68,14 @@ public class Dealer implements Runnable {
     @Override
     public void run() {
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
+        updateTimerDisplay(true);
         for (Player player : players) {
             Thread playerThread = new Thread(player, player.id + " ");
             playerThread.start();
+            updateTimerDisplay(false);
         }
         while (!shouldFinish()) {
-            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;//TODO not sure if this is good
+            
             Collections.shuffle(deck);
             placeCardsOnTable();
             timerLoop();
@@ -165,9 +167,9 @@ public class Dealer implements Runnable {
     /**
      * Reset and/or update the countdown and the countdown display.
      */
-    private void updateTimerDisplay(boolean reset) {
+    public void updateTimerDisplay(boolean reset) {
         if(reset){
-            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
+            env.ui.setCountdown(reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis,false);
         }
         else{ 
             env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
