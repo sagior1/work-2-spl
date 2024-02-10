@@ -186,9 +186,9 @@ public class Table {
     public void removeAllCardsFromTable(){
         for (int i=0; i<slotToCard.length; i++){
             Integer card = slotToCard[i];
+            env.ui.removeCard(i);
             slotToCard[i] = null;
             cardToSlot[card] = null;
-            env.ui.removeCard(card);
         }
         
     }
