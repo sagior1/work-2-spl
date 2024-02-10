@@ -94,10 +94,9 @@ public class Player implements Runnable {
 
         while (!terminate) {
             if (!actionsQueue.isEmpty()){
-
+                System.out.println("enterted actions queue");
                 //TODO - we need to ensure that the queue cant get more than 3 objects
                 int slot = actionsQueue.remove();
-                System.out.println(slot);
                 //If the token was already pressed, remove it from the table, and if not add it to the table.
                 if(table.tokenExists(id, slot)){
                     table.removeToken(id, slot);
@@ -106,9 +105,9 @@ public class Player implements Runnable {
                     table.placeToken(id, slot);
                     if(table.tokensPerPlayer[id].size()==3){
                         dealer.addToDeclaredQueue(this);
-                        try {
-                            synchronized (this) { wait(); }
-                        } catch (InterruptedException ignored) {}
+                        // try {
+                        //     synchronized (this) { wait(); }
+                        // } catch (InterruptedException ignored) {}
                         actionsQueue.clear();
                     }
                     //freeze until dealer releases
@@ -179,10 +178,10 @@ public class Player implements Runnable {
      * @post - the player's score is updated in the ui.
      */
     public void point() {
-        score++;
         try{
             Thread.sleep(env.config.pointFreezeMillis);
         }catch(InterruptedException ignored){}
+        
         env.ui.setFreeze(id, env.config.pointFreezeMillis);
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
         env.ui.setScore(id, ++score);
@@ -192,12 +191,13 @@ public class Player implements Runnable {
      * Penalize a player and perform other related actions.
      */
     public void penalty() {
+         env.ui.setFreeze(id, env.config.penaltyFreezeMillis);
         try{
-            Thread.sleep(env.config.penaltyFreezeMillis);
+            Thread.sleep(3000);
             //TODO notifyAll();
         }catch(InterruptedException ignored){}
         
-        env.ui.setFreeze(id, env.config.penaltyFreezeMillis);
+        
     }
 
     public int score() {
