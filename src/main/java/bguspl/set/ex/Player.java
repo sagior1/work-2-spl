@@ -139,9 +139,6 @@ public class Player implements Runnable {
                     actionsQueue.put(randomSlot);}
                     catch(InterruptedException ignored){}
                 }
-                try {
-                    synchronized (this) { wait(); }
-                } catch (InterruptedException ignored) {}
             }
             env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
         }, "computer-" + id);
