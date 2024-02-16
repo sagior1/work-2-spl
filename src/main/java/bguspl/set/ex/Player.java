@@ -62,6 +62,12 @@ public class Player implements Runnable {
 
     //manages the actions the player wants to make 
     BlockingQueue<Integer> actionsQueue;
+
+    /**
+     * To check if the player is frozen
+     */
+    private volatile boolean isFrozen;
+
     /**
      * The class constructor.
      *
@@ -106,9 +112,6 @@ public class Player implements Runnable {
                         table.placeToken(id, slot);
                         if(table.tokensPerPlayer[id].size()==3){
                             dealer.addToDeclaredQueue(this);
-                            // try {
-                            //     synchronized (this) { wait(); }
-                            // } catch (InterruptedException ignored) {}
                             actionsQueue.clear();
                         }
                         //freeze until dealer releases
@@ -131,9 +134,11 @@ public class Player implements Runnable {
             env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
             while (!terminate) {
                 int randomSlot = getRandomSlot();
-                try{
-                actionsQueue.put(randomSlot);}
-                catch(InterruptedException ignored){}
+                if(!isFrozen){
+                    try{
+                    actionsQueue.put(randomSlot);}
+                    catch(InterruptedException ignored){}
+                }
                 try {
                     synchronized (this) { wait(); }
                 } catch (InterruptedException ignored) {}
@@ -168,9 +173,11 @@ public class Player implements Runnable {
      * @param slot - the slot corresponding to the key pressed.
      */
     public void keyPressed(int slot) {
-        try {
-            actionsQueue.put(slot);
-        } catch (InterruptedException e) {}
+        if(!isFrozen){
+            try {
+                actionsQueue.put(slot);
+            } catch (InterruptedException e) {}
+        }
     }
 
     /**
@@ -180,23 +187,25 @@ public class Player implements Runnable {
      * @post - the player's score is updated in the ui.
      */
     public void point() {
+        isFrozen=true;
         try{
             for (long i = env.config.pointFreezeMillis; i > 0; i -= 1000) {
                 env.ui.setFreeze(id, i);
                 dealer.updateTimerDisplay(false);
                 Thread.sleep(1000);
             }env.ui.setFreeze(id, 0); 
-                   }catch(InterruptedException ignored){}
+                   }catch(InterruptedException e){System.out.println("sleep was interupted");}
         actionsQueue.clear();
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
         env.ui.setScore(id, ++score);
+        isFrozen=false;
     }
 
     /**
      * Penalize a player and perform other related actions.
      */
     public void penalty() {
-         
+        isFrozen=true;
         try{
             for(long i=env.config.penaltyFreezeMillis;i>0;i-=1000){
                 env.ui.setFreeze(id, i);
@@ -204,8 +213,9 @@ public class Player implements Runnable {
                 Thread.sleep(1000);
             }
             env.ui.setFreeze(id, 0);
-        }catch(InterruptedException ignored){}
+        }catch(InterruptedException e){}
         actionsQueue.clear();
+        isFrozen=false;
     }
 
     public int score() {
