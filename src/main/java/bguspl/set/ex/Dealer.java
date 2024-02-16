@@ -68,14 +68,13 @@ public class Dealer implements Runnable {
     @Override
     public void run() {
         env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
-        updateTimerDisplay(true);
         for (Player player : players) {
             Thread playerThread = new Thread(player, player.id + " ");
             playerThread.start();
-            updateTimerDisplay(false);
         }
         while (!shouldFinish()) {
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
+            updateTimerDisplay(false);
             Collections.shuffle(deck);
             placeCardsOnTable();
             timerLoop();
@@ -102,8 +101,8 @@ public class Dealer implements Runnable {
      * Called when the game should be terminated.
      */
     public void terminate() {
-        terminate = true;
         table.removeAllCardsFromTable();
+        terminate = true;
         // TODO implement
     }
 
@@ -160,8 +159,9 @@ public class Dealer implements Runnable {
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
      */
     private void sleepUntilWokenOrTimeout() {
-        //dealerThread.sleep(1);
-        // TODO implement
+        try{
+            dealerThread.wait();
+        }catch(InterruptedException e){}
     }
 
     /**
@@ -181,9 +181,9 @@ public class Dealer implements Runnable {
      * Returns all the cards from the table to the deck.
      */
     private void removeAllCardsFromTable() {
-        if(!table.tableHasSets()){
+        if(!table.tableHasSets())
             shuffleDeck();
-        }
+        
     }
 
     /**
