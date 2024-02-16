@@ -101,7 +101,7 @@ public class Table {
      *
      * @post - the card placed is on the table, in the assigned slot.
      */
-    public void placeCard(int card, int slot) {
+    public synchronized void placeCard(int card, int slot) {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
@@ -116,7 +116,7 @@ public class Table {
      * Removes a card from a grid slot on the table.
      * @param slot - the slot from which to remove the card.
      */
-    public void removeCard(int slot) {
+    public synchronized void removeCard(int slot) {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
@@ -134,7 +134,7 @@ public class Table {
      * @param player - the player the token belongs to.
      * @param slot   - the slot on which to place the token.
      */
-    public void placeToken(int player, int slot) {
+    public synchronized void placeToken(int player, int slot) {
         if(slotToCard[slot]!=null){
             tokensPerPlayer[player].add(slot);
             env.ui.placeToken(player, slot);
@@ -147,7 +147,7 @@ public class Table {
      * @param slot   - the slot from which to remove the token.
      * @return       - true iff a token was successfully removed.
      */
-    public boolean removeToken(int player, int slot) {
+    public synchronized boolean removeToken(int player, int slot) {
         if (tokenExists(player,slot)){
             tokensPerPlayer[player].remove(tokensPerPlayer[player].indexOf(slot));
             env.ui.removeToken(player,slot);
@@ -162,7 +162,7 @@ public class Table {
      * @param slot   - the slot from which to remove the token.
      * @return       - no value.
      */
-    public void removeTokensFromSlot(int slot){
+    public synchronized void removeTokensFromSlot(int slot){
         for(int i=0; i<tokensPerPlayer.length; i++){
             if (tokensPerPlayer[i].contains(slot)){
                 removeToken(i, slot);
@@ -177,7 +177,7 @@ public class Table {
      * @param slot   - the slot from which to check if the player has a token
      * @return       - true iff a player has a token in the given slot.
      */
-    public boolean tokenExists(int player, int slot){
+    public synchronized boolean tokenExists(int player, int slot){
         for (Integer i : tokensPerPlayer[player]) {
             if(i!=null&&i==slot){
                 return true;
@@ -189,7 +189,7 @@ public class Table {
     /**
      * removes all the cards from the table and add them to a list (to later return them to "deck" and shuffle deck)
      */
-        public void removeAllCardsFromTable(){
+        public synchronized void  removeAllCardsFromTable(){
         for (int i=0; i<slotToCard.length; i++){
             Integer card = slotToCard[i];
             removeTokensFromSlot(i);
@@ -211,12 +211,11 @@ public class Table {
         }
         return cardsOnTable;
     }
-
     /**
      * checks if there is a set on the table
      * @return       - true if thee is a set on the table, and false if not
      */
-   public boolean tableHasSets(){
+    public synchronized boolean tableHasSets(){
         List<Integer> cardsOnTable = tableToList();
         if (env.util.findSets(cardsOnTable, 1).size() > 0){
             return true;
