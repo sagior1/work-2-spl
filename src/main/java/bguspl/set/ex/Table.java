@@ -211,7 +211,7 @@ public class Table {
      * inserts all the cards in table to a list
      * @return       - a list with all the Integers that represents the cards that was on the table.
      */
-    public List<Integer> tableToList(){
+    public synchronized List<Integer> tableToList(){
         List<Integer> cardsOnTable = new ArrayList<>(); 
         for (int i=0; i<slotToCard.length; i++){
             Integer card = slotToCard[i];
