@@ -3,7 +3,9 @@ package bguspl.set.ex;
 import bguspl.set.Config;
 import bguspl.set.Env;
 import bguspl.set.UserInterfaceSwing;
-
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +42,9 @@ public class Table {
      */
     protected List<Integer>[] tokensPerPlayer;
 
+
+    protected BlockingQueue<Integer> setsDeclared;
+
     /**
      * Constructor for testing.
      *
@@ -55,6 +60,7 @@ public class Table {
         for (int i = 0; i < this.tokensPerPlayer.length; i++) {
         this.tokensPerPlayer[i] = new ArrayList<Integer>();
         }
+        this.setsDeclared =new LinkedBlockingQueue<>(); 
 
     }
 
@@ -109,7 +115,6 @@ public class Table {
         cardToSlot[card] = slot;
         slotToCard[slot] = card;
         env.ui.placeCard(card, slot);
-        // TODO implement
     }
 
     /**
@@ -135,6 +140,9 @@ public class Table {
      * @param slot   - the slot on which to place the token.
      */
     public synchronized void placeToken(int player, int slot) {
+        try {
+            Thread.sleep(env.config.tableDelayMillis);
+        } catch (InterruptedException ignored) {}
         if(slotToCard[slot]!=null){
             tokensPerPlayer[player].add(slot);
             env.ui.placeToken(player, slot);
@@ -148,6 +156,9 @@ public class Table {
      * @return       - true iff a token was successfully removed.
      */
     public synchronized boolean removeToken(int player, int slot) {
+        try {
+            Thread.sleep(env.config.tableDelayMillis);
+        } catch (InterruptedException ignored) {}
         if (tokenExists(player,slot)){
             tokensPerPlayer[player].remove(tokensPerPlayer[player].indexOf(slot));
             env.ui.removeToken(player,slot);
@@ -191,11 +202,8 @@ public class Table {
      */
         public synchronized void  removeAllCardsFromTable(){
         for (int i=0; i<slotToCard.length; i++){
-            Integer card = slotToCard[i];
             removeTokensFromSlot(i);
-            env.ui.removeCard(i);
-            slotToCard[i] = null;
-            cardToSlot[card] = null;
+            removeCard(i);
         }  
     }
 
