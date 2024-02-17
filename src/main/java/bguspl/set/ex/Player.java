@@ -58,7 +58,7 @@ public class Player implements Runnable {
     /**
      * The dealer of the game
      */
-    private Dealer dealer;
+    private final Dealer dealer;
 
     //manages the actions the player wants to make 
     BlockingQueue<Integer> actionsQueue;
@@ -67,6 +67,10 @@ public class Player implements Runnable {
      * To check if the player is frozen
      */
     private volatile boolean isFrozen;
+
+    protected volatile Integer decision;
+
+    public BlockingQueue<Integer> decisionQueue;
 
     /**
      * The class constructor.
@@ -85,7 +89,8 @@ public class Player implements Runnable {
         this.dealer=dealer;
         this.terminate=false;
         this.actionsQueue = new LinkedBlockingQueue<>(3);
-
+        this.decision=0;
+        this.decisionQueue = new LinkedBlockingQueue<>(1);
     }
 
     /**
@@ -100,7 +105,6 @@ public class Player implements Runnable {
 
         while (!terminate) {
             if (!actionsQueue.isEmpty()){
-                //TODO - we need to ensure that the queue cant get more than 3 objects
                 int slot = actionsQueue.remove();
                 //If the token was already pressed, remove it from the table, and if not add it to the table.
                 if(table.tokenExists(id, slot)){
@@ -111,22 +115,32 @@ public class Player implements Runnable {
                         table.placeToken(id, slot);
                         
                         if(table.tokensPerPlayer[id].size()==3){
-                            synchronized(table.setsDeclared){
-                                try{
-                                    table.setsDeclared.put(id);
-                                }catch(InterruptedException e){}
-                                table.setsDeclared.notifyAll();
-                            dealer.addToDeclaredQueue(this);
-                            actionsQueue.clear();
-                            
+                                synchronized(table.setsDeclared){
+                                    table.setsDeclared.add(id);
+                                    table.setsDeclared.notifyAll();
+                                    actionsQueue.clear();
                             }
+
+                            synchronized(decisionQueue){
+                                while(decisionQueue.isEmpty()){
+                                    try{
+                                        decisionQueue.wait();
+                                    }
+                                    catch(InterruptedException ignored){}
+                                }
+                            }
+                            int dec=decisionQueue.remove();
+                            if(dec==1){
+                                point();
+                            }
+                            else{
+                                penalty();
+                            }
+                            
                         }
-                        //freeze until dealer releases
-                        
                     }
                 }
             }
-            // TODO implement main player loop
         }
         if (!human) try { aiThread.join(); } catch (InterruptedException ignored) {}
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
@@ -209,10 +223,13 @@ public class Player implements Runnable {
      */
     public void penalty() {
         isFrozen=true;
+        System.out.println("penaltied");
         try{
             for(long i=env.config.penaltyFreezeMillis;i>0;i-=1000){
+                env.logger.info("player is going to sleep");
                 env.ui.setFreeze(id, i);
                 Thread.sleep(1000);
+                env.logger.info("player waking up");
             }
             env.ui.setFreeze(id, 0);
         }catch(InterruptedException e){}
@@ -230,5 +247,7 @@ public class Player implements Runnable {
     public void setIsFrozen(boolean frozen){
         isFrozen=frozen;
     }
-
+    public void setDecision(int decision){
+        this.decision=decision;
+    }
 }
