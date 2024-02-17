@@ -46,7 +46,7 @@ public class Dealer implements Runnable {
     /**
      * a queue of players who declared that they have a set
      */
-    private BlockingQueue<Player> declaredSets;
+    //private BlockingQueue<Player> declaredSets;
     
     protected volatile boolean freezePlayers;
     /**
@@ -61,7 +61,7 @@ public class Dealer implements Runnable {
         this.table = table;
         this.players = players;
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
-        declaredSets=new LinkedBlockingQueue<Player>();
+        //  declaredSets=new LinkedBlockingQueue<Player>();
         terminate = false;
         freezePlayers=false;
     }
@@ -76,12 +76,12 @@ public class Dealer implements Runnable {
             Thread playerThread = new Thread(player, player.id + " ");
             playerThread.start();
         }
+        Collections.shuffle(deck);
         while (!shouldFinish()) {
-            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
-            updateTimerDisplay(false);
-            Collections.shuffle(deck);
             placeCardsOnTable();
             table.hints();
+            updateTimerDisplay(true);
+            updateTimerDisplay(false);
             timerLoop();
             updateTimerDisplay(false);
             removeAllCardsFromTable();
@@ -124,28 +124,38 @@ public class Dealer implements Runnable {
      * Checks cards should be removed from the table and removes them.
      */
     private void removeCardsFromTable() {//need to make sure if there are sets found here
-        while(!declaredSets.isEmpty()){
-            Player player = declaredSets.remove();
-            if(table.tokensPerPlayer[player.getid()].size()==3){
-                if(playerHasSet(player.getid())){
-                    player.point();
+        synchronized (table.setsDeclared) {
+            
+        while(!table.setsDeclared.isEmpty()){
+            int playerid=table.setsDeclared.remove();
+            if(table.tokensPerPlayer[playerid].size()==3){
+                Player player=getPlayer(playerid);
+                System.out.println("enterted to check declared set");
+                synchronized(player.decisionQueue){
+                if(playerHasSet(playerid)){
+                    player.decisionQueue.add(1);
                     updateTimerDisplay(true);
-                    //Iterator<Integer> iter = table.tokensPerPlayer[player.getid()].iterator();
+                    table.setsDeclared.notifyAll();
                     for(Integer i=0;i<3;i++){
                         updateTimerDisplay(false);
                         System.out.println("enterted removal fo first slot");
-                        int slot=table.tokensPerPlayer[player.getid()].get(0);
-                        table.removeCard(slot);
+                        int slot=table.tokensPerPlayer[playerid].get(0);
                         table.removeTokensFromSlot(slot);
+                        table.removeCard(slot);
                     }
+                    player.decisionQueue.notifyAll();
                 }
                 else{
-                    //player.notifyAll();//TODO dont know if this is a good idea
-                    player.penalty();
+                    System.out.println("changed decision to -1");
+                    player.decisionQueue.add(-1);
+                    player.decisionQueue.notifyAll();
+                    table.setsDeclared.notifyAll();
                 }
+            }
                 
             }
         }
+    }
     }
 
     /**
@@ -163,23 +173,28 @@ public class Dealer implements Runnable {
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
      */
     private void sleepUntilWokenOrTimeout() {
+        long waitTime = 1000; 
         synchronized(table.setsDeclared){
-            try{
-                if(table.setsDeclared.isEmpty()){
-                    table.setsDeclared.wait(1000);
-                }
+            if(table.setsDeclared.isEmpty()){
+                try {
+                    env.logger.info("Dealer is going to sleep");
+                    table.setsDeclared.wait(waitTime);
+                    env.logger.info("Dealer waking up");
+
+                } catch(InterruptedException ignored){}
             }
-            catch(InterruptedException e){}
         }
     }
+    
 
     /**
      * Reset and/or update the countdown and the countdown display.
      */
     private void updateTimerDisplay(boolean reset) {
+        System.out.println("inside timer display");
         if(reset){
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
-            env.ui.setCountdown(env.config.turnTimeoutMillis,false);
+            env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
         }
         else{ 
             env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
@@ -242,9 +257,9 @@ public class Dealer implements Runnable {
      * adds a player who declared on a set
      * @param player - the player who declared.
      */
-    public synchronized void addToDeclaredQueue(Player player){
-        declaredSets.add(player);
-    }
+    // public synchronized void addToDeclaredQueue(Player player){
+    //     declaredSets.add(player);
+    // }
     /**
      * adds all the cards that we removed from the tablr to deck and shuffle deck.
      * @return       - true iff a player has a correct set 
@@ -254,9 +269,15 @@ public class Dealer implements Runnable {
         deck.addAll(cardsFromTable);
         Collections.shuffle(deck);
         table.removeAllCardsFromTable();
-        declaredSets.clear();
+        //declaredSets.clear();
     }
-
+    private Player getPlayer(int id){
+        for (Player player : players) {
+            if(player.getid()==id)
+                return player;
+        }
+        return null;
+    }
 
 
 }
