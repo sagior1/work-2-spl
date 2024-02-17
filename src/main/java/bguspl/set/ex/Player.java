@@ -100,7 +100,6 @@ public class Player implements Runnable {
 
         while (!terminate) {
             if (!actionsQueue.isEmpty()){
-                System.out.println("enterted actions queue");
                 //TODO - we need to ensure that the queue cant get more than 3 objects
                 int slot = actionsQueue.remove();
                 //If the token was already pressed, remove it from the table, and if not add it to the table.
@@ -110,11 +109,20 @@ public class Player implements Runnable {
                 else{
                     if(table.tokensPerPlayer[id].size()<3){
                         table.placeToken(id, slot);
+                        
                         if(table.tokensPerPlayer[id].size()==3){
+                            synchronized(table.setsDeclared){
+                                try{
+                                    table.setsDeclared.put(id);
+                                }catch(InterruptedException e){}
+                                table.setsDeclared.notifyAll();
                             dealer.addToDeclaredQueue(this);
                             actionsQueue.clear();
+                            
+                            }
                         }
                         //freeze until dealer releases
+                        
                     }
                 }
             }
@@ -130,14 +138,13 @@ public class Player implements Runnable {
      */
     private void createArtificialIntelligence() {
         // note: this is a very, very smart AI (!)
+        System.out.println("created AI");
         aiThread = new Thread(() -> {
             env.logger.info("thread " + Thread.currentThread().getName() + " starting.");
             while (!terminate) {
                 int randomSlot = getRandomSlot();
-                if(!isFrozen){
-                    try{
-                    actionsQueue.put(randomSlot);}
-                    catch(InterruptedException ignored){}
+                if(!isFrozen&&!dealer.freezePlayers){
+                        keyPressed(randomSlot);
                 }
             }
             env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
@@ -152,7 +159,7 @@ public class Player implements Runnable {
     public int getRandomSlot(){
         Random random = new Random();
         int min = 0;
-        int max =table.slotToCard.length;
+        int max =table.slotToCard.length-1;
         return random.nextInt(max - min + 1) + min;
     }
 
@@ -170,7 +177,7 @@ public class Player implements Runnable {
      * @param slot - the slot corresponding to the key pressed.
      */
     public void keyPressed(int slot) {
-        if(!isFrozen){
+        if(!isFrozen&&!dealer.freezePlayers){
             try {
                 actionsQueue.put(slot);
             } catch (InterruptedException e) {}
@@ -188,7 +195,6 @@ public class Player implements Runnable {
         try{
             for (long i = env.config.pointFreezeMillis; i > 0; i -= 1000) {
                 env.ui.setFreeze(id, i);
-                dealer.updateTimerDisplay(false);
                 Thread.sleep(1000);
             }env.ui.setFreeze(id, 0); 
                    }catch(InterruptedException e){System.out.println("sleep was interupted");}
@@ -206,7 +212,6 @@ public class Player implements Runnable {
         try{
             for(long i=env.config.penaltyFreezeMillis;i>0;i-=1000){
                 env.ui.setFreeze(id, i);
-                dealer.updateTimerDisplay(false);
                 Thread.sleep(1000);
             }
             env.ui.setFreeze(id, 0);
@@ -222,5 +227,8 @@ public class Player implements Runnable {
         return id;
     }
 
+    public void setIsFrozen(boolean frozen){
+        isFrozen=frozen;
+    }
 
 }
