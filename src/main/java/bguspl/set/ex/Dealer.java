@@ -47,10 +47,14 @@ public class Dealer implements Runnable {
      * a queue of players who declared that they have a set
      */
     private BlockingQueue<Player> declaredSets;
+    
+    protected volatile boolean freezePlayers;
     /**
      * The thread representing the dealer.
      */
     private Thread dealerThread;
+
+    
 
     public Dealer(Env env, Table table, Player[] players) {
         this.env = env;
@@ -59,7 +63,7 @@ public class Dealer implements Runnable {
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
         declaredSets=new LinkedBlockingQueue<Player>();
         terminate = false;
-        
+        freezePlayers=false;
     }
 
     /**
@@ -77,6 +81,7 @@ public class Dealer implements Runnable {
             updateTimerDisplay(false);
             Collections.shuffle(deck);
             placeCardsOnTable();
+            table.hints();
             timerLoop();
             updateTimerDisplay(false);
             removeAllCardsFromTable();
@@ -123,16 +128,15 @@ public class Dealer implements Runnable {
             Player player = declaredSets.remove();
             if(table.tokensPerPlayer[player.getid()].size()==3){
                 if(playerHasSet(player.getid())){
-                    //player.notifyAll();//TODO dont know if this is a good idea
                     player.point();
+                    updateTimerDisplay(true);
                     //Iterator<Integer> iter = table.tokensPerPlayer[player.getid()].iterator();
                     for(Integer i=0;i<3;i++){
+                        updateTimerDisplay(false);
                         System.out.println("enterted removal fo first slot");
                         int slot=table.tokensPerPlayer[player.getid()].get(0);
                         table.removeCard(slot);
                         table.removeTokensFromSlot(slot);
-                        updateTimerDisplay(true);
-                        System.out.println("finished first remove of slot");
                     }
                 }
                 else{
@@ -159,17 +163,23 @@ public class Dealer implements Runnable {
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
      */
     private void sleepUntilWokenOrTimeout() {
-        try{
-            dealerThread.wait();
-        }catch(InterruptedException e){}
+        synchronized(table.setsDeclared){
+            try{
+                if(table.setsDeclared.isEmpty()){
+                    table.setsDeclared.wait(1000);
+                }
+            }
+            catch(InterruptedException e){}
+        }
     }
 
     /**
      * Reset and/or update the countdown and the countdown display.
      */
-    public void updateTimerDisplay(boolean reset) {
+    private void updateTimerDisplay(boolean reset) {
         if(reset){
-            env.ui.setCountdown(reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis,false);
+            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
+            env.ui.setCountdown(env.config.turnTimeoutMillis,false);
         }
         else{ 
             env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
@@ -181,9 +191,11 @@ public class Dealer implements Runnable {
      * Returns all the cards from the table to the deck.
      */
     private void removeAllCardsFromTable() {
+        freezePlayers=true;
         if(!table.tableHasSets())
             shuffleDeck();
         
+        freezePlayers=false;
     }
 
     /**
@@ -230,7 +242,7 @@ public class Dealer implements Runnable {
      * adds a player who declared on a set
      * @param player - the player who declared.
      */
-    public void addToDeclaredQueue(Player player){
+    public synchronized void addToDeclaredQueue(Player player){
         declaredSets.add(player);
     }
     /**
@@ -242,7 +254,9 @@ public class Dealer implements Runnable {
         deck.addAll(cardsFromTable);
         Collections.shuffle(deck);
         table.removeAllCardsFromTable();
+        declaredSets.clear();
     }
+
 
 
 }
