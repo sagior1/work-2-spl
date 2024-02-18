@@ -70,6 +70,8 @@ public class Player implements Runnable {
 
     protected volatile Integer decision;
 
+    public BlockingQueue<Integer> decisionQueue;
+
     /**
      * The class constructor.
      *
@@ -88,6 +90,7 @@ public class Player implements Runnable {
         this.terminate=false;
         this.actionsQueue = new LinkedBlockingQueue<>(3);
         this.decision=0;
+        this.decisionQueue = new LinkedBlockingQueue<>(1);
     }
 
     /**
@@ -102,7 +105,6 @@ public class Player implements Runnable {
 
         while (!terminate) {
             if (!actionsQueue.isEmpty()){
-                //TODO - we need to ensure that the queue cant get more than 3 objects
                 int slot = actionsQueue.remove();
                 //If the token was already pressed, remove it from the table, and if not add it to the table.
                 if(table.tokenExists(id, slot)){
@@ -114,31 +116,35 @@ public class Player implements Runnable {
                         
                         if(table.tokensPerPlayer[id].size()==3){
                                 synchronized(table.setsDeclared){
-                                    table.setsDeclared.notifyAll();
                                     table.setsDeclared.add(id);
-                                    isFrozen=true;
                                     table.setsDeclared.notifyAll();
-                                    //dealer.addToDeclaredQueue(this);
+                                    System.out.println("gave set to dealer");
                                     actionsQueue.clear();
-                                //table.setsDeclared.notifyAll();
                             }
-                            while(isFrozen){
-                                //System.out.println("decision is "+decision);
-                            }
-                            if(decision==-1){
-                                penalty();
-                            }
-                            else{
+
+                            synchronized(decisionQueue){
+                                while(decisionQueue.isEmpty()){
+                                    try{
+                                        System.out.println("waiting for decision queue");
+                                        decisionQueue.wait();
+                                    }
+                                    catch(InterruptedException ignored){}
+                                }
+                            System.out.println("released to do pointor penalty");
+                            int dec=decisionQueue.remove();
+                            if(dec==1){
                                 point();
                             }
+                            else{
+                                penalty();
+                            }
+                            decisionQueue.notifyAll();
+                        }
                             
                         }
-                        //freeze until dealer releases
-                        
                     }
                 }
             }
-            // TODO implement main player loop
         }
         if (!human) try { aiThread.join(); } catch (InterruptedException ignored) {}
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
