@@ -99,6 +99,7 @@ public class Dealer implements Runnable {
             updateTimerDisplay(false);
             removeCardsFromTable();
             placeCardsOnTable();
+            table.hints();
         }
     }
 
@@ -130,7 +131,6 @@ public class Dealer implements Runnable {
             int playerid=table.setsDeclared.remove();
             if(table.tokensPerPlayer[playerid].size()==3){
                 Player player=getPlayer(playerid);
-                System.out.println("enterted to check declared set");
                 synchronized(player.decisionQueue){
                 if(playerHasSet(playerid)){
                     player.decisionQueue.add(1);
@@ -138,7 +138,6 @@ public class Dealer implements Runnable {
                     table.setsDeclared.notifyAll();
                     for(Integer i=0;i<3;i++){
                         updateTimerDisplay(false);
-                        System.out.println("enterted removal fo first slot");
                         int slot=table.tokensPerPlayer[playerid].get(0);
                         table.removeTokensFromSlot(slot);
                         table.removeCard(slot);
@@ -146,7 +145,6 @@ public class Dealer implements Runnable {
                     player.decisionQueue.notifyAll();
                 }
                 else{
-                    System.out.println("changed decision to -1");
                     player.decisionQueue.add(-1);
                     player.decisionQueue.notifyAll();
                     table.setsDeclared.notifyAll();
@@ -191,7 +189,6 @@ public class Dealer implements Runnable {
      * Reset and/or update the countdown and the countdown display.
      */
     private void updateTimerDisplay(boolean reset) {
-        System.out.println("inside timer display");
         if(reset){
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
             env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
