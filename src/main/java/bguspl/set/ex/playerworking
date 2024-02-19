@@ -130,7 +130,8 @@ public class Player implements Runnable {
                                     }
                                     catch(InterruptedException ignored){}
                                 }
-                            System.out.println("released to do pointor penalty");
+                            }
+                            System.out.println("released to do point or penalty");
                             int dec=decisionQueue.remove();
                             if(dec==1){
                                 point();
@@ -138,10 +139,8 @@ public class Player implements Runnable {
                             else{
                                 penalty();
                             }
-                            decisionQueue.notifyAll();
                         }
                             
-                        }
                     }
                 }
             }
@@ -210,6 +209,7 @@ public class Player implements Runnable {
      */
     public void point() {
         isFrozen=true;
+        env.ui.setScore(id, ++score);
         try{
             for (long i = env.config.pointFreezeMillis; i > 0; i -= 1000) {
                 env.ui.setFreeze(id, i);
@@ -218,7 +218,6 @@ public class Player implements Runnable {
                    }catch(InterruptedException e){System.out.println("sleep was interupted");}
         actionsQueue.clear();
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
-        env.ui.setScore(id, ++score);
         isFrozen=false;
     }
 
