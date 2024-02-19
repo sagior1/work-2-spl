@@ -187,7 +187,7 @@ public class Dealer implements Runnable {
             if(table.setsDeclared.isEmpty()){
                 try {
                     env.logger.info("dealer going to sleep");
-                    table.setsDeclared.wait(1000);
+                    table.setsDeclared.wait(950);
                     env.logger.info("dealer waking up");
                 } catch(InterruptedException ignored){}
             }
