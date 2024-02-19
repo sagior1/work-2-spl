@@ -128,13 +128,11 @@ public class Dealer implements Runnable {
         synchronized (table.setsDeclared) {
             
         while(!table.setsDeclared.isEmpty()){
-            boolean foundSet=false;
             int playerid=table.setsDeclared.remove();
             if(table.tokensPerPlayer[playerid].size()==3){
                 Player player=getPlayer(playerid);
                 synchronized(player.decisionQueue){
                 if(playerHasSet(playerid)){
-                    foundSet=true;
                     player.decisionQueue.add(1);
                     System.out.println("notifying decsion queue in dealer");
                     //player.decisionQueue.notifyAll();
@@ -147,7 +145,7 @@ public class Dealer implements Runnable {
                     }
 
                     
-                    //updateTimerDisplay(true);
+                    updateTimerDisplay(true);
                     table.setsDeclared.notifyAll();
                     player.decisionQueue.notifyAll();
                 }
@@ -160,7 +158,7 @@ public class Dealer implements Runnable {
                 
             }
             System.out.println("gonna rest timer");
-            updateTimerDisplay(foundSet);
+            
         }
         
         //table.setsDeclared.notifyAll();
@@ -178,6 +176,7 @@ public class Dealer implements Runnable {
                 table.placeCard(card, i);
             }
         }
+        freezePlayers=false;
     }
     /**
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
@@ -187,7 +186,7 @@ public class Dealer implements Runnable {
             if(table.setsDeclared.isEmpty()){
                 try {
                     env.logger.info("dealer going to sleep");
-                    table.setsDeclared.wait(950);
+                    table.setsDeclared.wait(920);
                     env.logger.info("dealer waking up");
                 } catch(InterruptedException ignored){}
             }
@@ -215,10 +214,7 @@ public class Dealer implements Runnable {
      */
     private void removeAllCardsFromTable() {
         freezePlayers=true;
-        if(!table.tableHasSets())
-            shuffleDeck();
-        
-        freezePlayers=false;
+        shuffleDeck();
     }
 
     /**
