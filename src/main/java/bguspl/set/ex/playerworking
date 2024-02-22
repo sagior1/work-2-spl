@@ -113,32 +113,37 @@ public class Player implements Runnable {
                 else{
                     if(table.tokensPerPlayer[id].size()<3){
                         table.placeToken(id, slot);
-                        
+                        int playeridforcheck=id+1;
                         if(table.tokensPerPlayer[id].size()==3){
                                 synchronized(table.setsDeclared){
                                     table.setsDeclared.add(id);
                                     table.setsDeclared.notifyAll();
-                                    System.out.println("gave set to dealer");
+                                    env.logger.info("player "+playeridforcheck+" gave set to dealer");
                                     actionsQueue.clear();
                             }
 
                             synchronized(decisionQueue){
-                                while(decisionQueue.isEmpty()){
                                     try{
-                                        System.out.println("waiting for decision queue");
+                                        if(decisionQueue.isEmpty()){
+                                        env.logger.info("player "+playeridforcheck+" waiting for decision");
                                         decisionQueue.wait();
+
                                     }
-                                    catch(InterruptedException ignored){}
                                 }
+                                    catch(InterruptedException ignored){}
                             }
-                            System.out.println("released to do point or penalty");
-                            int dec=decisionQueue.remove();
+                            int dec=0;
+                            if(!decisionQueue.isEmpty()){
+                                dec=decisionQueue.remove();}
+                            env.logger.info("player "+playeridforcheck+" done waiting for decision and got decision "+dec);
+
                             if(dec==1){
                                 point();
                             }
-                            else{
+                            else{ if(dec==-1)
                                 penalty();
                             }
+                            env.logger.info("freeze status for player "+playeridforcheck+" is "+ isFrozen);
                         }
                             
                     }
@@ -214,11 +219,13 @@ public class Player implements Runnable {
             for (long i = env.config.pointFreezeMillis; i > 0; i -= 1000) {
                 env.ui.setFreeze(id, i);
                 Thread.sleep(1000);
-            }env.ui.setFreeze(id, 0); 
+            }
+            env.ui.setFreeze(id, 0); 
+            isFrozen=false;
                    }catch(InterruptedException e){System.out.println("sleep was interupted");}
         actionsQueue.clear();
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
-        isFrozen=false;
+
     }
 
     /**
@@ -226,7 +233,7 @@ public class Player implements Runnable {
      */
     public void penalty() {
         isFrozen=true;
-        System.out.println("penaltied");
+        env.logger.info("penaltied " +id);
         try{
             for(long i=env.config.penaltyFreezeMillis;i>0;i-=1000){
                 env.logger.info("player is going to sleep");
@@ -235,6 +242,7 @@ public class Player implements Runnable {
                 env.logger.info("player waking up");
             }
             env.ui.setFreeze(id, 0);
+            isFrozen=false;
         }catch(InterruptedException e){}
         actionsQueue.clear();
         isFrozen=false;
