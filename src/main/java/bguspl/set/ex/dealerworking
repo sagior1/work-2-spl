@@ -83,8 +83,9 @@ public class Dealer implements Runnable {
             //reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
             updateTimerDisplay(true);
             timerLoop();
-            updateTimerDisplay(false);
+            //updateTimerDisplay(false);
             removeAllCardsFromTable();
+            
         }
         announceWinners();
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
@@ -100,6 +101,7 @@ public class Dealer implements Runnable {
             removeCardsFromTable();
             placeCardsOnTable();
             //table.hints();
+            //env.logger.info("player")
         }
     }
 
@@ -129,12 +131,21 @@ public class Dealer implements Runnable {
             
         while(!table.setsDeclared.isEmpty()){
             int playerid=table.setsDeclared.remove();
+            int idforcheck=playerid+1;
+            env.logger.info("checking set of player " + idforcheck);
+
             if(table.tokensPerPlayer[playerid].size()==3){
-                Player player=getPlayer(playerid);
-                synchronized(player.decisionQueue){
+                Player player=players[playerid];
+                //synchronized(player.decisionQueue){
+                
+                if(table.tokensPerPlayer[playerid].size()<3){
+                    player.decisionQueue.add(0);
+                    env.logger.info("releasing player because set is too short for player " + idforcheck);
+                }
+                else{
                 if(playerHasSet(playerid)){
                     player.decisionQueue.add(1);
-                    System.out.println("notifying decsion queue in dealer");
+                    
                     //player.decisionQueue.notifyAll();
                     System.out.println("gonna take out the cardes");
                     for(Integer i=0;i<3;i++){
@@ -143,27 +154,31 @@ public class Dealer implements Runnable {
                         table.removeTokensFromSlot(slot);
                         table.removeCard(slot);
                     }
-
-                    
-                    updateTimerDisplay(true);
+                    env.logger.info("giving point to player " + idforcheck);
                     table.setsDeclared.notifyAll();
-                    player.decisionQueue.notifyAll();
+                    updateTimerDisplay(true);
+                    
+
                 }
                 else{
+                    env.logger.info("giving penalty to player " + idforcheck);
                     player.decisionQueue.add(-1);
-                    player.decisionQueue.notifyAll();
                     table.setsDeclared.notifyAll();
                 }
             }
-                
+
             }
-            System.out.println("gonna rest timer");
+            synchronized(players[playerid].decisionQueue){
+                env.logger.info("dealer succefuly synchronied on player decision queue for player " + idforcheck);
+                
+                players[playerid].decisionQueue.notifyAll();
+            }
+            }
             
         }
         
         //table.setsDeclared.notifyAll();
 
-    }
     }
 
     /**
@@ -200,7 +215,7 @@ public class Dealer implements Runnable {
     private void updateTimerDisplay(boolean reset) {
         if(reset){
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
-            reshuffleTime-=100;
+            reshuffleTime-=10;
             env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
         }
         else{ 
@@ -215,6 +230,7 @@ public class Dealer implements Runnable {
     private void removeAllCardsFromTable() {
         freezePlayers=true;
         shuffleDeck();
+        freezePlayers=false;
     }
 
     /**
@@ -250,6 +266,9 @@ public class Dealer implements Runnable {
      * @return       - true iff a player has a correct set 
      */
     public boolean playerHasSet(int player){
+        if(table.tokensPerPlayer[player].size()<3){
+            return false;
+        }
         int[] cards=new int[3];
         Iterator<Integer> iter = table.tokensPerPlayer[player].iterator();
         for(int i=0;i<3&&iter.hasNext();i++){
@@ -285,3 +304,5 @@ public class Dealer implements Runnable {
 
 
 }
+
+
