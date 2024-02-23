@@ -189,6 +189,7 @@ public class Player implements Runnable {
      * Called when the game should be terminated.
      */
     public void terminate() {
+        env.logger.info("thread " + Thread.currentThread().getName() + " strting terminated.");
         terminate = true;
         // TODO implement
     }
