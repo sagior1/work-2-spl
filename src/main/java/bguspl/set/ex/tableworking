@@ -217,7 +217,9 @@ public class Table {
         List<Integer> cardsOnTable = new ArrayList<>(); 
         for (int i=0; i<slotToCard.length; i++){
             Integer card = slotToCard[i];
-            cardsOnTable.add(card);
+            if(card!=null){
+                cardsOnTable.add(card);
+            }
         }
         return cardsOnTable;
     }
