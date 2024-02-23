@@ -50,11 +50,24 @@ public class Dealer implements Runnable {
     
     protected volatile boolean freezePlayers;
     /**
+     * to manage if the timer shouldl be warned
+     */
+    private boolean warn;
+    /**
      * The thread representing the dealer.
      */
     private Thread dealerThread;
 
-    
+    /**
+     * for managing the amout of time the dealer needs to wait
+     */
+    private long sleepingManager=0;
+    /**
+     * finals for updating the timer correctly
+     */
+    public static final int ONESECOND = 1000;
+    public static final int TENMILIS = 10;
+    public static final int ONEMILIS = 1;
 
     public Dealer(Env env, Table table, Player[] players) {
         this.env = env;
@@ -213,15 +226,29 @@ public class Dealer implements Runnable {
      * Reset and/or update the countdown and the countdown display.
      */
     private void updateTimerDisplay(boolean reset) {
+        long timeToDisplay;
         if(reset){
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
-            reshuffleTime-=10;
-            env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
+            sleepingManager=0;
+            warn=false;
+            env.ui.setCountdown(reshuffleTime-ONEMILIS, false);
+
+            // reshuffleTime-=10;
+            // env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
+
         }
         else{ 
-            env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
+            timeToDisplay=reshuffleTime-sleepingManager;
+            if(timeToDisplay<=env.config.turnTimeoutWarningMillis){
+                env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), true);
+                sleepingManager+=TENMILIS;
+            }
+            else{
+                sleepingManager+=ONESECOND;
+                env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
+            }
         }
-
+        //add if the timer display settings are different
     }
 
     /**
