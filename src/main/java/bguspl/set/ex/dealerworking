@@ -234,7 +234,7 @@ public class Dealer implements Runnable {
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
             sleepingManager= reshuffleTime - env.config.turnTimeoutMillis;;
             warn=false;
-            env.ui.setCountdown(env.config.turnTimeoutMillis-ONEMILIS, false);
+            env.ui.setCountdown(env.config.turnTimeoutMillis-TENMILIS, false);
 
             // reshuffleTime-=10;
             // env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
@@ -245,7 +245,12 @@ public class Dealer implements Runnable {
                 timeToDisplay=reshuffleTime-sleepingManager;
                 env.logger.info("time to display is: "+timeToDisplay);
                 if(timeToDisplay<=env.config.turnTimeoutWarningMillis){
-                    env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), true);
+                    timeToDisplay=reshuffleTime-System.currentTimeMillis();
+                    if(timeToDisplay<=0){
+                        env.ui.setCountdown(0, true);
+                    }
+                    else
+                        env.ui.setCountdown(timeToDisplay, true);
                     sleepingManager+=TENMILIS;
                 }
                 else{
