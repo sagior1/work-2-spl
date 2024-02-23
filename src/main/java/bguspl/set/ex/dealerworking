@@ -210,11 +210,14 @@ public class Dealer implements Runnable {
      * Sleep for a fixed amount of time or until the thread is awakened for some purpose.
      */
     private void sleepUntilWokenOrTimeout() {
+        
+        long waitLength=sleepingManager - System.currentTimeMillis();
+        env.logger.info("wait length is: "+ waitLength);
         synchronized(table.setsDeclared){
-            if(table.setsDeclared.isEmpty()&&sleepingManager - System.currentTimeMillis()>ONEMILIS){
+            if(table.setsDeclared.isEmpty()&&waitLength>ONEMILIS){
                 try {
                     env.logger.info("dealer going to sleep");
-                    table.setsDeclared.wait(sleepingManager - System.currentTimeMillis());
+                    table.setsDeclared.wait(waitLength);
                     env.logger.info("dealer waking up");
                 } catch(InterruptedException ignored){}
             }
@@ -229,23 +232,26 @@ public class Dealer implements Runnable {
         long timeToDisplay;
         if(reset){
             reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
-            sleepingManager=0;
+            sleepingManager= reshuffleTime - env.config.turnTimeoutMillis;;
             warn=false;
-            env.ui.setCountdown(reshuffleTime-ONEMILIS, false);
+            env.ui.setCountdown(env.config.turnTimeoutMillis-ONEMILIS, false);
 
             // reshuffleTime-=10;
             // env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
 
         }
         else{ 
-            timeToDisplay=reshuffleTime-sleepingManager;
-            if(timeToDisplay<=env.config.turnTimeoutWarningMillis){
-                env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), true);
-                sleepingManager+=TENMILIS;
-            }
-            else{
-                sleepingManager+=ONESECOND;
-                env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), false);
+            if (System.currentTimeMillis() >= sleepingManager) {
+                timeToDisplay=reshuffleTime-sleepingManager;
+                env.logger.info("time to display is: "+timeToDisplay);
+                if(timeToDisplay<=env.config.turnTimeoutWarningMillis){
+                    env.ui.setCountdown(reshuffleTime-System.currentTimeMillis(), true);
+                    sleepingManager+=TENMILIS;
+                }
+                else{
+                    env.ui.setCountdown(reshuffleTime-sleepingManager, false);
+                    sleepingManager+=ONESECOND;
+                }
             }
         }
         //add if the timer display settings are different
