@@ -211,10 +211,10 @@ public class Dealer implements Runnable {
      */
     private void sleepUntilWokenOrTimeout() {
         synchronized(table.setsDeclared){
-            if(table.setsDeclared.isEmpty()){
+            if(table.setsDeclared.isEmpty()&&sleepingManager - System.currentTimeMillis()>ONEMILIS){
                 try {
                     env.logger.info("dealer going to sleep");
-                    table.setsDeclared.wait(920);
+                    table.setsDeclared.wait(sleepingManager - System.currentTimeMillis());
                     env.logger.info("dealer waking up");
                 } catch(InterruptedException ignored){}
             }
