@@ -49,10 +49,7 @@ public class Dealer implements Runnable {
     //private BlockingQueue<Player> declaredSets;
     
     protected volatile boolean freezePlayers;
-    /**
-     * to manage if the timer shouldl be warned
-     */
-    private boolean warn;
+
     /**
      * The thread representing the dealer.
      */
@@ -61,7 +58,7 @@ public class Dealer implements Runnable {
     /**
      * for managing the amout of time the dealer needs to wait
      */
-    private long sleepingManager=0;
+    private long sleepingManager= Long.MAX_VALUE;
     /**
      * finals for updating the timer correctly
      */
@@ -108,14 +105,21 @@ public class Dealer implements Runnable {
      * The inner loop of the dealer thread that runs as long as the countdown did not time out.
      */
     private void timerLoop() {
-        while (!terminate && System.currentTimeMillis() < reshuffleTime) {
+        while (!terminate && (System.currentTimeMillis() < reshuffleTime || (env.config.turnTimeoutMillis <= 0))) {
             sleepUntilWokenOrTimeout();
             updateTimerDisplay(false);
             removeCardsFromTable();
             placeCardsOnTable();
             //table.hints();
             //env.logger.info("player")
+            if(env.config.turnTimeoutMillis <= 0){
+                List<Integer> cardsFromTable = table.tableToList();
+                if (env.util.findSets(cardsFromTable, 1).size() == 0) {
+                    break;
+                }
+            }
         }
+
     }
 
     /**
@@ -128,8 +132,7 @@ public class Dealer implements Runnable {
             Player shutDown = players[i];
             shutDown.terminate();
         }
-        terminate = true;
-        // TODO implement
+         terminate = true;
     }
 
     /**
@@ -152,11 +155,11 @@ public class Dealer implements Runnable {
             int idforcheck=playerid+1;
             env.logger.info("checking set of player " + idforcheck);
 
-            if(table.tokensPerPlayer[playerid].size()==3){
+            if(table.tokensPerPlayer[playerid].size()==env.config.featureSize){
                 Player player=players[playerid];
                 //synchronized(player.decisionQueue){
                 
-                if(table.tokensPerPlayer[playerid].size()<3){
+                if(table.tokensPerPlayer[playerid].size()<env.config.featureSize){
                     player.decisionQueue.add(0);
                     env.logger.info("releasing player because set is too short for player " + idforcheck);
                 }
@@ -166,7 +169,7 @@ public class Dealer implements Runnable {
                     
                     //player.decisionQueue.notifyAll();
                     System.out.println("gonna take out the cardes");
-                    for(Integer i=0;i<3;i++){
+                    for(Integer i=0;i<env.config.featureSize;i++){
                         //updateTimerDisplay(false);
                         int slot=table.tokensPerPlayer[playerid].get(0);
                         table.removeTokensFromSlot(slot);
@@ -219,6 +222,7 @@ public class Dealer implements Runnable {
         long waitLength=sleepingManager - System.currentTimeMillis();
         env.logger.info("wait length is: "+ waitLength);
         synchronized(table.setsDeclared){
+            //if()
             if(table.setsDeclared.isEmpty()&&waitLength>ONEMILIS){
                 try {
                     env.logger.info("dealer going to sleep");
@@ -234,46 +238,68 @@ public class Dealer implements Runnable {
      * Reset and/or update the countdown and the countdown display.
      */
     private void updateTimerDisplay(boolean reset) {
-        long timeToDisplay;
-        if(reset){
-            reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
-            sleepingManager= reshuffleTime - env.config.turnTimeoutMillis;;
-            warn=false;
-            env.ui.setCountdown(env.config.turnTimeoutMillis-TENMILIS, false);
-
-            // reshuffleTime-=10;
-            // env.ui.setCountdown(reshuffleTime-System.currentTimeMillis() ,false);
-
-        }
-        else{ 
-            if (System.currentTimeMillis() >= sleepingManager) {
-                timeToDisplay=reshuffleTime-sleepingManager;
-                env.logger.info("time to display is: "+timeToDisplay);
-                if(timeToDisplay<=env.config.turnTimeoutWarningMillis){
-                    timeToDisplay=reshuffleTime-System.currentTimeMillis();
-                    if(timeToDisplay<=0){
-                        env.ui.setCountdown(0, true);
+        long timeToDisplay=0;
+        if(env.config.turnTimeoutMillis>0){
+            if(reset){
+                reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
+                sleepingManager= reshuffleTime - env.config.turnTimeoutMillis;;
+                env.ui.setCountdown(env.config.turnTimeoutMillis-TENMILIS, false);
+            }
+            else{ 
+                if (System.currentTimeMillis() >= sleepingManager) {
+                    timeToDisplay=reshuffleTime-sleepingManager;
+                    env.logger.info("time to display is: "+timeToDisplay);
+                    if(timeToDisplay<=env.config.turnTimeoutWarningMillis){
+                        timeToDisplay=reshuffleTime-System.currentTimeMillis();
+                        if(timeToDisplay<=0){
+                            env.ui.setCountdown(0, true);
+                        }
+                        else
+                            env.ui.setCountdown(timeToDisplay, true);
+                        sleepingManager+=TENMILIS;
                     }
-                    else
-                        env.ui.setCountdown(timeToDisplay, true);
-                    sleepingManager+=TENMILIS;
-                }
-                else{
-                    env.ui.setCountdown(reshuffleTime-sleepingManager, false);
-                    sleepingManager+=ONESECOND;
+                    else{
+                        env.ui.setCountdown(reshuffleTime-sleepingManager, false);
+                        sleepingManager+=ONESECOND;
+                    }
                 }
             }
         }
-        //add if the timer display settings are different
+        if(env.config.turnTimeoutMillis==0){
+            if(reset){
+                reshuffleTime=System.currentTimeMillis();
+                sleepingManager=reshuffleTime;
+                timeToDisplay=0;
+            }
+            else{
+                timeToDisplay=sleepingManager-reshuffleTime;
+            }
+            if(sleepingManager<=System.currentTimeMillis()){
+                env.ui.setElapsed(timeToDisplay);
+                sleepingManager += ONESECOND;
+            }
+
+        }
     }
 
     /**
      * Returns all the cards from the table to the deck.
      */
     private void removeAllCardsFromTable() {
-        freezePlayers=true;
-        shuffleDeck();
-        freezePlayers=false;
+        if(env.config.turnTimeoutMillis>0){
+            freezePlayers=true;
+            shuffleDeck();
+            freezePlayers=false;
+        }
+        if(env.config.turnTimeoutMillis<=0){
+            List<Integer> cardsFromTable = table.tableToList();
+            env.logger.info("has set in table? "+env.util.findSets(cardsFromTable, 1).size());
+            if(env.util.findSets(cardsFromTable, 1).size() == 0){
+                freezePlayers=true;
+                shuffleDeck();
+                freezePlayers=false;
+            }
+        }
     }
 
     /**
@@ -309,12 +335,12 @@ public class Dealer implements Runnable {
      * @return       - true iff a player has a correct set 
      */
     public boolean playerHasSet(int player){
-        if(table.tokensPerPlayer[player].size()<3){
+        if(table.tokensPerPlayer[player].size()<env.config.featureSize){
             return false;
         }
-        int[] cards=new int[3];
+        int[] cards=new int[env.config.featureSize];
         Iterator<Integer> iter = table.tokensPerPlayer[player].iterator();
-        for(int i=0;i<3&&iter.hasNext();i++){
+        for(int i=0;i<env.config.featureSize&&iter.hasNext();i++){
             cards[i]=table.slotToCard[iter.next()];
         }
         return env.util.testSet(cards);
@@ -347,3 +373,5 @@ public class Dealer implements Runnable {
 
 
 }
+
+
