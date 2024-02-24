@@ -289,6 +289,9 @@ public class Dealer implements Runnable {
         if(env.config.turnTimeoutMillis>0){
             freezePlayers=true;
             shuffleDeck();
+            for (Player player : players) {
+                player.actionsQueue.clear();
+            }
             freezePlayers=false;
         }
         if(env.config.turnTimeoutMillis<=0){
@@ -297,6 +300,9 @@ public class Dealer implements Runnable {
             if(env.util.findSets(cardsFromTable, 1).size() == 0){
                 freezePlayers=true;
                 shuffleDeck();
+                for (Player player : players) {
+                    player.actionsQueue.clear();
+                }
                 freezePlayers=false;
             }
         }
@@ -324,9 +330,7 @@ public class Dealer implements Runnable {
             winnersArray[i]=player.getid();
             i++;
         }
-        if(winners.size()==1){
             env.ui.announceWinner(winnersArray);
-        }
     }
 
     /**
@@ -361,7 +365,6 @@ public class Dealer implements Runnable {
         deck.addAll(cardsFromTable);
         Collections.shuffle(deck);
         table.removeAllCardsFromTable();
-        //declaredSets.clear();
     }
     private Player getPlayer(int id){
         for (Player player : players) {
