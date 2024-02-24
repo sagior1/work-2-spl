@@ -88,7 +88,7 @@ public class Player implements Runnable {
         this.human = human;
         this.dealer=dealer;
         this.terminate=false;
-        this.actionsQueue = new LinkedBlockingQueue<>(3);
+        this.actionsQueue = new LinkedBlockingQueue<>(env.config.featureSize);
         this.decision=0;
         this.decisionQueue = new LinkedBlockingQueue<>(1);
     }
@@ -111,10 +111,10 @@ public class Player implements Runnable {
                     table.removeToken(id, slot);
                 }
                 else{
-                    if(table.tokensPerPlayer[id].size()<3){
+                    if(table.tokensPerPlayer[id].size()<env.config.featureSize){
                         table.placeToken(id, slot);
                         int playeridforcheck=id+1;
-                        if(table.tokensPerPlayer[id].size()==3){
+                        if(table.tokensPerPlayer[id].size()==env.config.featureSize){
                                 synchronized(table.setsDeclared){
                                     table.setsDeclared.add(id);
                                     table.setsDeclared.notifyAll();
