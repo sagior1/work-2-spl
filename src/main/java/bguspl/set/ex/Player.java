@@ -88,7 +88,7 @@ public class Player implements Runnable {
         this.human = human;
         this.dealer=dealer;
         this.terminate=false;
-        this.actionsQueue = new LinkedBlockingQueue<>(3);
+        this.actionsQueue = new LinkedBlockingQueue<>(env.config.featureSize);
         this.decision=0;
         this.decisionQueue = new LinkedBlockingQueue<>(1);
     }
@@ -111,33 +111,41 @@ public class Player implements Runnable {
                     table.removeToken(id, slot);
                 }
                 else{
-                    if(table.tokensPerPlayer[id].size()<3){
+                    if(table.tokensPerPlayer[id].size()<env.config.featureSize){
                         table.placeToken(id, slot);
-                        
-                        if(table.tokensPerPlayer[id].size()==3){
+                        int playeridforcheck=id+1;
+                        if(table.tokensPerPlayer[id].size()==env.config.featureSize){
                                 synchronized(table.setsDeclared){
                                     table.setsDeclared.add(id);
                                     table.setsDeclared.notifyAll();
+                                    env.logger.info("player "+playeridforcheck+" gave set to dealer");
                                     actionsQueue.clear();
                             }
 
                             synchronized(decisionQueue){
-                                while(decisionQueue.isEmpty()){
                                     try{
+                                        if(decisionQueue.isEmpty()){
+                                        env.logger.info("player "+playeridforcheck+" waiting for decision");
                                         decisionQueue.wait();
+
                                     }
-                                    catch(InterruptedException ignored){}
                                 }
+                                    catch(InterruptedException ignored){}
                             }
-                            int dec=decisionQueue.remove();
+                            int dec=0;
+                            if(!decisionQueue.isEmpty()){
+                                dec=decisionQueue.remove();}
+                            env.logger.info("player "+playeridforcheck+" done waiting for decision and got decision "+dec);
+
                             if(dec==1){
                                 point();
                             }
-                            else{
+                            else{ if(dec==-1)
                                 penalty();
                             }
-                            
+                            env.logger.info("freeze status for player "+playeridforcheck+" is "+ isFrozen);
                         }
+                            
                     }
                 }
             }
@@ -181,8 +189,8 @@ public class Player implements Runnable {
      * Called when the game should be terminated.
      */
     public void terminate() {
+        env.logger.info("thread " + Thread.currentThread().getName() + " strting terminated.");
         terminate = true;
-        // TODO implement
     }
 
     /**
@@ -206,16 +214,18 @@ public class Player implements Runnable {
      */
     public void point() {
         isFrozen=true;
+        env.ui.setScore(id, ++score);
         try{
             for (long i = env.config.pointFreezeMillis; i > 0; i -= 1000) {
                 env.ui.setFreeze(id, i);
                 Thread.sleep(1000);
-            }env.ui.setFreeze(id, 0); 
+            }
+            env.ui.setFreeze(id, 0); 
+            isFrozen=false;
                    }catch(InterruptedException e){System.out.println("sleep was interupted");}
         actionsQueue.clear();
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
-        env.ui.setScore(id, ++score);
-        isFrozen=false;
+
     }
 
     /**
@@ -223,7 +233,7 @@ public class Player implements Runnable {
      */
     public void penalty() {
         isFrozen=true;
-        System.out.println("penaltied");
+        env.logger.info("penaltied " +id);
         try{
             for(long i=env.config.penaltyFreezeMillis;i>0;i-=1000){
                 env.logger.info("player is going to sleep");
@@ -232,6 +242,7 @@ public class Player implements Runnable {
                 env.logger.info("player waking up");
             }
             env.ui.setFreeze(id, 0);
+            isFrozen=false;
         }catch(InterruptedException e){}
         actionsQueue.clear();
         isFrozen=false;
