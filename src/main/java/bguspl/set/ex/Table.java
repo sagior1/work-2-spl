@@ -107,7 +107,7 @@ public class Table {
      *
      * @post - the card placed is on the table, in the assigned slot.
      */
-    public void placeCard(int card, int slot) {
+    public synchronized void placeCard(int card, int slot) {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
@@ -121,7 +121,7 @@ public class Table {
      * Removes a card from a grid slot on the table.
      * @param slot - the slot from which to remove the card.
      */
-    public void removeCard(int slot) {
+    public synchronized void removeCard(int slot) {
         try {
             Thread.sleep(env.config.tableDelayMillis);
         } catch (InterruptedException ignored) {}
@@ -200,7 +200,7 @@ public class Table {
     /**
      * removes all the cards from the table and add them to a list (to later return them to "deck" and shuffle deck)
      */
-        public void  removeAllCardsFromTable(){
+        public synchronized void  removeAllCardsFromTable(){
         for (int i=0; i<slotToCard.length; i++){
             if(slotToCard[i]!=null){
             removeTokensFromSlot(i);
