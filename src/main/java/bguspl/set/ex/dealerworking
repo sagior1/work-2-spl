@@ -73,7 +73,7 @@ public class Dealer implements Runnable {
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
         //  declaredSets=new LinkedBlockingQueue<Player>();
         terminate = false;
-        freezePlayers=false;
+        freezePlayers=true;
     }
 
     /**
@@ -113,6 +113,7 @@ public class Dealer implements Runnable {
             updateTimerDisplay(false);
             removeCardsFromTable();
             placeCardsOnTable();
+
             //table.hints();
             //env.logger.info("player")
             if(env.config.turnTimeoutMillis <= 0){
@@ -299,7 +300,6 @@ public class Dealer implements Runnable {
             for (Player player : players) {
                 player.actionsQueue.clear();
             }
-            freezePlayers=false;
         }
         if(env.config.turnTimeoutMillis<=0){
             List<Integer> cardsFromTable = table.tableToList();
