@@ -178,8 +178,8 @@ public class Dealer implements Runnable {
                     player.decisionQueue.add(1);                   
                     for(Integer i=0;i<env.config.featureSize;i++){
                         int slot=table.tokensPerPlayer[playerid].get(0);
-                        table.removeTokensFromSlot(slot);
                         table.removeCard(slot);
+                        table.removeTokensFromSlot(slot);
                     }
                     env.logger.info("giving point to player " + idforcheck);
                     table.setsDeclared.notifyAll();
