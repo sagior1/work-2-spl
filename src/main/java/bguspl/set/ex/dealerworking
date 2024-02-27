@@ -128,11 +128,15 @@ public class Dealer implements Runnable {
     public void terminate() {
         table.removeAllCardsFromTable();
         env.logger.info("dealer starting terminate.");
-        for (int i=players.length-1; i >= 0; i--){
-            Player shutDown = players[i];
-            shutDown.terminate();
-        }
-         terminate = true;
+        try{
+            for (int i=players.length-1; i >= 0; i--){
+                Player shutDown = players[i];
+                shutDown.terminate();
+                shutDown.getThread().join();
+            }
+            terminate = true;
+        }catch(InterruptedException ignored) {}
+         
     }
 
     /**
@@ -376,5 +380,3 @@ public class Dealer implements Runnable {
 
 
 }
-
-
