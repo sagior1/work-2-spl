@@ -98,9 +98,12 @@ public class Dealer implements Runnable {
             
         }
         announceWinners();
-        try{
-            Thread.sleep(env.config.endGamePauseMillies);
-       }catch(InterruptedException e){}
+        if(!terminate){
+            terminate();
+        }
+    //     try{
+    //         Thread.sleep(env.config.endGamePauseMillies);
+    //    }catch(InterruptedException e){}
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
     }
 
@@ -130,13 +133,14 @@ public class Dealer implements Runnable {
      * Called when the game should be terminated.
      */
     public void terminate() {
+        freezePlayers=true;
         table.removeAllCardsFromTable();
         env.logger.info("dealer starting terminate.");
         try{
             for (int i=players.length-1; i >= 0; i--){
-                Player shutDown = players[i];
-                shutDown.terminate();
-                shutDown.getThread().join();
+                players[i].terminate();
+                players[i].getThread().interrupt();
+                players[i].getThread().join();
             }
             terminate = true;
         }catch(InterruptedException ignored) {}
