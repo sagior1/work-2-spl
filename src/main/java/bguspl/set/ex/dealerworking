@@ -46,7 +46,6 @@ public class Dealer implements Runnable {
     /**
      * a queue of players who declared that they have a set
      */
-    //private BlockingQueue<Player> declaredSets;
     
     protected volatile boolean freezePlayers;
 
@@ -177,12 +176,8 @@ public class Dealer implements Runnable {
                 }
                 else{
                 if(playerHasSet(playerid)){
-                    player.decisionQueue.add(1);
-                    
-                    //player.decisionQueue.notifyAll();
-                    System.out.println("gonna take out the cardes");
+                    player.decisionQueue.add(1);                   
                     for(Integer i=0;i<env.config.featureSize;i++){
-                        //updateTimerDisplay(false);
                         int slot=table.tokensPerPlayer[playerid].get(0);
                         table.removeTokensFromSlot(slot);
                         table.removeCard(slot);
@@ -209,9 +204,6 @@ public class Dealer implements Runnable {
             }
             
         }
-        
-        //table.setsDeclared.notifyAll();
-
     }
 
     /**
@@ -360,13 +352,8 @@ public class Dealer implements Runnable {
         }
         return env.util.testSet(cards);
     }
-    /**
-     * adds a player who declared on a set
-     * @param player - the player who declared.
-     */
-    // public synchronized void addToDeclaredQueue(Player player){
-    //     declaredSets.add(player);
-    // }
+
+
     /**
      * adds all the cards that we removed from the tablr to deck and shuffle deck.
      * @return       - true iff a player has a correct set 
@@ -377,13 +364,7 @@ public class Dealer implements Runnable {
         Collections.shuffle(deck);
         table.removeAllCardsFromTable();
     }
-    private Player getPlayer(int id){
-        for (Player player : players) {
-            if(player.getid()==id)
-                return player;
-        }
-        return null;
-    }
+
 
 
 }
