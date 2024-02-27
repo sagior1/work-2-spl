@@ -133,7 +133,7 @@ public class Dealer implements Runnable {
      */
     public void terminate() {
         freezePlayers=true;
-        table.removeAllCardsFromTable();
+        //table.removeAllCardsFromTable();
         env.logger.info("dealer starting terminate.");
         try{
             for (int i=players.length-1; i >= 0; i--){
@@ -142,6 +142,7 @@ public class Dealer implements Runnable {
                 players[i].getThread().join();
             }
             terminate = true;
+            Thread.currentThread().interrupt();
         }catch(InterruptedException ignored) {}
          
     }
@@ -167,9 +168,7 @@ public class Dealer implements Runnable {
             env.logger.info("checking set of player " + idforcheck);
 
             if(table.tokensPerPlayer[playerid].size()==env.config.featureSize){
-                Player player=players[playerid];
-                //synchronized(player.decisionQueue){
-                
+                Player player=players[playerid];                
                 if(table.tokensPerPlayer[playerid].size()<env.config.featureSize){
                     player.decisionQueue.add(0);
                     env.logger.info("releasing player because set is too short for player " + idforcheck);
