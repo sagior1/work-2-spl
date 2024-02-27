@@ -73,7 +73,7 @@ public class Dealer implements Runnable {
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
         //  declaredSets=new LinkedBlockingQueue<Player>();
         terminate = false;
-        freezePlayers=true;
+        freezePlayers=false;
     }
 
     /**
@@ -89,7 +89,6 @@ public class Dealer implements Runnable {
         Collections.shuffle(deck);
         while (!shouldFinish()) {
             placeCardsOnTable();
-            freezePlayers=false;
             table.hints();
             //reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
             updateTimerDisplay(true);
@@ -99,12 +98,6 @@ public class Dealer implements Runnable {
             
         }
         announceWinners();
-        if(!terminate){
-            terminate();
-        }
-        try{
-             Thread.sleep(env.config.endGamePauseMillies);
-        }catch(InterruptedException e){}
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
     }
 
@@ -134,13 +127,16 @@ public class Dealer implements Runnable {
      */
     public void terminate() {
         table.removeAllCardsFromTable();
-
         env.logger.info("dealer starting terminate.");
-        for (int i=players.length-1; i >= 0; i--){
-            Player shutDown = players[i];
-            shutDown.terminate();
-        }
-         terminate = true;
+        try{
+            for (int i=players.length-1; i >= 0; i--){
+                Player shutDown = players[i];
+                shutDown.terminate();
+                shutDown.getThread().join();
+            }
+            terminate = true;
+        }catch(InterruptedException ignored) {}
+         
     }
 
     /**
@@ -384,5 +380,3 @@ public class Dealer implements Runnable {
 
 
 }
-
-
