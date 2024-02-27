@@ -98,6 +98,9 @@ public class Dealer implements Runnable {
             
         }
         announceWinners();
+        try{
+            Thread.sleep(env.config.endGamePauseMillies);
+       }catch(InterruptedException e){}
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
     }
 
