@@ -179,7 +179,6 @@ public class Table {
                 removeToken(i, slot);
             }
         }
-        System.out.println("finished removeTokensFromSlot");
         env.ui.removeTokens(slot);
     }
     /**
@@ -234,4 +233,4 @@ public class Table {
         }
         else {return false;}
    }
-}
+} 
