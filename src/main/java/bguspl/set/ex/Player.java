@@ -190,7 +190,10 @@ public class Player implements Runnable {
      */
     public void terminate() {
         env.logger.info("thread " + Thread.currentThread().getName() + " strting terminated.");
-        terminate = true;
+            terminate = true;
+            if(!human && aiThread != null){
+                aiThread.interrupt();
+            }
     }
 
     /**
@@ -260,5 +263,9 @@ public class Player implements Runnable {
     }
     public void setDecision(int decision){
         this.decision=decision;
+    }
+
+    public Thread getThread(){
+        return playerThread;
     }
 }
