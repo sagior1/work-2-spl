@@ -101,9 +101,9 @@ public class Dealer implements Runnable {
         if(!terminate){
             terminate();
         }
-    //     try{
-    //         Thread.sleep(env.config.endGamePauseMillies);
-    //    }catch(InterruptedException e){}
+        try{
+            Thread.sleep(env.config.endGamePauseMillies);
+       }catch(InterruptedException e){}
         env.logger.info("thread " + Thread.currentThread().getName() + " terminated.");
     }
 
