@@ -111,7 +111,7 @@ public class Player implements Runnable {
                     table.removeToken(id, slot);
                 }
                 else{
-                    if(table.tokensPerPlayer[id].size()<env.config.featureSize){
+                    if(table.tokensPerPlayer[id].size()<env.config.featureSize&&table.slotToCard[slot]!=null){
                         table.placeToken(id, slot);
                         int playeridforcheck=id+1;
                         if(table.tokensPerPlayer[id].size()==env.config.featureSize){
