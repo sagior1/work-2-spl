@@ -12,15 +12,23 @@ with a short description of:
 
 1. Fully supporting all configuration fields and avoiding the use of magic numbers
 we implemented this bonus in a lot of methods, wherever we needed to use a configuration field we used the field instead of using numbers. for example we check the set size according to the feature size.
-we didn't use any magic numbers and implemented all confugration fields. Also when changing the timer we used "final" fields representing each time needed. 
-we used it in the following methods: Dealer constructor,Dealer run, timerloop, Dealer removeCardsFromTable, updateTimerDisplay,removeAllCardsFromTable, Dealer playerHasSet, Player constructor, Player run, point, penalty, Table constructor, table placeCard, table removeCard
-we tested it by running the game many times each time changing different config making sure they work as needed
+1. we didn't use any magic numbers and implemented all confugration fields. Also when changing the timer we used "final" fields representing each time needed. 
+2. we used it in the following methods: Dealer constructor,Dealer run, timerloop, Dealer removeCardsFromTable, updateTimerDisplay,removeAllCardsFromTable, Dealer playerHasSet, Player constructor, Player run, point, penalty, Table constructor, table placeCard, table removeCard
+3. we tested it by running the game many times each time changing different config making sure they work as needed
 
 --------------------
 
 2. Terminating all threads (that you created) gracefully and in reverse order to the order they were created in.
 
-We are not entitled to this bonus.
+1. In our code, the creation of the threads run like this: [main] -> dealer -> player -> if not humen - ai thread.
+we implemented the bonus by making sure that when terminating the threads, every thread closes the thread that it opened.
+overall, we made sure that in every implementation of "terminate" the thread first closes the thread that it opened, and only after that will be closed itself.
+That way we can make sure we closed the threads in reverse order.
+garcefully - in every "terminate" function, after we closed the next thread, we changed the "terminate" boolean value, so the thread will be able to exit the loop properly, release resources and clean tasks.
+
+2.It was used in the "terminated" mthodes in the different classes.
+
+3. We tested that it works correcly by looking ad the given logs, that showed us when does every thread finished terminating. In the logs, we saw that the order is correct, and that how we knew that the bonus is working.
 
 --------------------
 
@@ -29,9 +37,9 @@ config.turnTimeoutMillis < 0: display nothing.
 config.turnTimeoutMillis = 0: display a timer since the last action (reshuffle or set collected).
 Note: in modes without a countdown timer the dealer must ensure there is always at least one legal set on the table.
 
-in the needed function we checked what is the configuration of the timer and implemented them accordingly
-we implemented it in the following methods: timerloop, updateTimerDisplay, removeAllCardsFromTable, sleepUntillWokenUporTimeout
-we tested it by using our own logs to check if the timer is updating correctly to the situation and that the cards in the table are being reshuffled when needed.
+1. in the needed function we checked what is the configuration of the timer and implemented them accordingly. Also made sure there is always a set on the table in the needed configuration. counting the timer when the conifiguration is 0 we made sure to count the seconds and reset them when needed.
+2. we implemented it in the following methods: timerloop, updateTimerDisplay, removeAllCardsFromTable, sleepUntillWokenUporTimeout
+3. we tested it by using our own logs to check if the timer is updating correctly to the situation and that the cards in the table are being reshuffled when needed.
 
 --------------------
 
@@ -39,4 +47,4 @@ we tested it by using our own logs to check if the timer is updating correctly t
 changed on the display, key input needs to be handled, etc.) and the only threads created by you are:
 1 thread per player + 1 additional thread for non-human players.
 
-We are not entitled to this bonus.
+we partialy did this bonus, we don't have any extra threads. however the players are awake even when they don't have some actual job to do
