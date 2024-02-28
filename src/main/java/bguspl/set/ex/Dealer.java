@@ -96,7 +96,6 @@ public class Dealer implements Runnable {
             removeAllCardsFromTable();
             
         }
-        freezePlayers=true;
         announceWinners();
         if(!terminate){
             terminate();
@@ -126,7 +125,6 @@ public class Dealer implements Runnable {
                 }
             }
         }
-        updateTimerDisplay(false);
 
     }
 
@@ -180,7 +178,6 @@ public class Dealer implements Runnable {
                     player.decisionQueue.add(1);                   
                     for(Integer i=0;i<env.config.featureSize;i++){
                         int slot=table.tokensPerPlayer[playerid].get(0);
-                        table.removeTokensFromSlot(slot);
                         table.removeCard(slot);
                         table.removeTokensFromSlot(slot);
                     }
@@ -228,25 +225,15 @@ public class Dealer implements Runnable {
         long waitLength=sleepingManager - System.currentTimeMillis();
         env.logger.info("wait length is: "+ waitLength);
         synchronized(table.setsDeclared){
-            try {
-            if(env.config.turnTimeoutMillis >= 0){
+            //if()
             if(table.setsDeclared.isEmpty()&&waitLength>ONEMILIS){
-                
+                try {
                     env.logger.info("dealer going to sleep");
                     table.setsDeclared.wait(waitLength);
                     env.logger.info("dealer waking up");
-                
+                } catch(InterruptedException ignored){}
             }
         }
-        else{
-            if(table.setsDeclared.isEmpty())
-                env.logger.info("dealer going to sleep");
-                table.setsDeclared.wait(ONESECOND);
-                env.logger.info("dealer waking up");
-        }
-    } catch(InterruptedException ignored){}
-        }
-
     }
     
 
@@ -259,7 +246,7 @@ public class Dealer implements Runnable {
             if(reset){
                 reshuffleTime=System.currentTimeMillis() + env.config.turnTimeoutMillis;
                 sleepingManager= reshuffleTime - env.config.turnTimeoutMillis;;
-                env.ui.setCountdown(env.config.turnTimeoutMillis, false);
+                env.ui.setCountdown(env.config.turnTimeoutMillis-TENMILIS, false);
             }
             else{ 
                 if (System.currentTimeMillis() >= sleepingManager) {
