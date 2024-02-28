@@ -231,16 +231,12 @@ public class Dealer implements Runnable {
             try {
             if(env.config.turnTimeoutMillis >= 0){
             if(table.setsDeclared.isEmpty()&&waitLength>ONEMILIS){
-                env.logger.info("dealer going to sleep");
                 table.setsDeclared.wait(waitLength);
-                env.logger.info("dealer waking up");
             }
         }
         else{
             if(table.setsDeclared.isEmpty())
-                env.logger.info("dealer going to sleep");
                 table.setsDeclared.wait(TENMILIS);
-                env.logger.info("dealer waking up");
         }
     } catch(InterruptedException ignored){}
         }
