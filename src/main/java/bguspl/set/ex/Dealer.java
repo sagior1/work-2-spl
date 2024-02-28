@@ -228,15 +228,25 @@ public class Dealer implements Runnable {
         long waitLength=sleepingManager - System.currentTimeMillis();
         env.logger.info("wait length is: "+ waitLength);
         synchronized(table.setsDeclared){
-            //if()
+            try {
+            if(env.config.turnTimeoutMillis >= 0){
             if(table.setsDeclared.isEmpty()&&waitLength>ONEMILIS){
-                try {
+                
                     env.logger.info("dealer going to sleep");
                     table.setsDeclared.wait(waitLength);
                     env.logger.info("dealer waking up");
-                } catch(InterruptedException ignored){}
+                
             }
         }
+        else{
+            if(table.setsDeclared.isEmpty())
+                env.logger.info("dealer going to sleep");
+                table.setsDeclared.wait(ONESECOND);
+                env.logger.info("dealer waking up");
+        }
+    } catch(InterruptedException ignored){}
+        }
+
     }
     
 
