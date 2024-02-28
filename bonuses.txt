@@ -11,8 +11,10 @@ with a short description of:
 --------------------
 
 1. Fully supporting all configuration fields and avoiding the use of magic numbers
-
-We are not entitled to this bonus.
+we implemented this bonus in a lot of methods, wherever we needed to use a configuration field we used the field instead of using numbers. for example we check the set size according to the feature size.
+we didn't use any magic numbers and implemented all confugration fields. Also when changing the timer we used "final" fields representing each time needed. 
+we used it in the following methods: Dealer constructor,Dealer run, timerloop, Dealer removeCardsFromTable, updateTimerDisplay,removeAllCardsFromTable, Dealer playerHasSet, Player constructor, Player run, point, penalty, Table constructor, table placeCard, table removeCard
+we tested it by running the game many times each time changing different config making sure they work as needed
 
 --------------------
 
@@ -27,7 +29,9 @@ config.turnTimeoutMillis < 0: display nothing.
 config.turnTimeoutMillis = 0: display a timer since the last action (reshuffle or set collected).
 Note: in modes without a countdown timer the dealer must ensure there is always at least one legal set on the table.
 
-We are not entitled to this bonus.
+in the needed function we checked what is the configuration of the timer and implemented them accordingly
+we implemented it in the following methods: timerloop, updateTimerDisplay, removeAllCardsFromTable, sleepUntillWokenUporTimeout
+we tested it by using our own logs to check if the timer is updating correctly to the situation and that the cards in the table are being reshuffled when needed.
 
 --------------------
 
